@@ -1,0 +1,30 @@
+{
+  "name": "Test Session",
+  "target": "example.com",
+  "status": "active",
+  "metadata": {},
+  "state": {
+    "currentPhase": "exploitation",
+    "knownFacts": [
+      "Port 80 is open"
+    ],
+    "openQuestions": [
+      "What are the open ports?",
+      "What services are running?"
+    ],
+    "actionHistory": [
+      {
+        "action": "nmap scan",
+        "result": {
+          "result": "open ports: 80, 443"
+        },
+        "timestamp": "2026-07-30T13:24:03.408Z"
+      }
+    ],
+    "confidenceSnapshot": 0.1
+  },
+  "version": 1,
+  "id": "9e48e053-3686-4155-9ed5-afe16ec68746",
+  "createdAt": "2026-07-30T13:24:03.407Z",
+  "updatedAt": "2026-07-30T13:24:03.410Z"
+}

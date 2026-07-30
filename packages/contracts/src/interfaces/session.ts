@@ -6,6 +6,18 @@ export enum SessionStatus {
   FAILED = 'failed'
 }
 
+export interface SessionState {
+  currentPhase: string;
+  knownFacts: string[];
+  openQuestions: string[];
+  actionHistory: Array<{
+    action: string;
+    result: any;
+    timestamp: Date;
+  }>;
+  confidenceSnapshot: number; // 0.0 to 1.0
+}
+
 export interface Session {
   id: string;
   name: string;
@@ -17,6 +29,8 @@ export interface Session {
   tags?: string[];
   config?: Record<string, any>;
   metadata: Record<string, any>;
+  state: SessionState; // Added nested state
+  version: number; // For migrations
 }
 
 export interface SessionRepository {

@@ -5,10 +5,16 @@ import { MockModelProvider } from './providers/mock';
 import { ModelProvider } from '@ai-pentest/contracts';
 import { PromptRegistry } from './registry/prompt-registry';
 import { PromptLoader } from './registry/prompt-loader';
+import { FileSessionRepository } from './persistence/file-session-repository';
+import { SessionStateEngine } from './engine/session-state-engine';
 import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Persistence & Engine setup
+const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
+const sessionEngine = new SessionStateEngine(sessionRepo);
 
 // Registry setup
 const promptRegistry = new PromptRegistry(path.join(__dirname, 'registry', 'prompts'));
@@ -97,6 +103,50 @@ app.get('/prompts', (req: Request, res: Response) => {
 app.post('/prompts/reload', async (req: Request, res: Response) => {
   await promptRegistry.load();
   res.json({ message: 'Registry reloaded' });
+});
+
+// Session Management Endpoints
+app.post('/sessions', async (req: Request, res: Response) => {
+  const { target, name } = req.body;
+  if (!target) return res.status(400).json({ error: 'Target is required' });
+  
+  try {
+    const session = await sessionEngine.createSession(target, name);
+    res.status(201).json(session);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/sessions', async (req: Request, res: Response) => {
+  const sessions = await sessionEngine.listSessions();
+  res.json(sessions);
+});
+
+app.get('/sessions/:id', async (req: Request, res: Response) => {
+  const session = await sessionEngine.getSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  res.json(session);
+});
+
+app.patch('/sessions/:id/state', async (req: Request, res: Response) => {
+  try {
+    const session = await sessionEngine.updateState(req.params.id, req.body);
+    res.json(session);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/sessions/:id/facts', async (req: Request, res: Response) => {
+  const { fact } = req.body;
+  if (!fact) return res.status(400).json({ error: 'Fact is required' });
+  try {
+    const session = await sessionEngine.addFact(req.params.id, fact);
+    res.json(session);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.listen(port, () => {

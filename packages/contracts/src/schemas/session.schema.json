@@ -16,7 +16,30 @@
     "endTime": { "type": "string", "format": "date-time" },
     "tags": { "type": "array", "items": { "type": "string" } },
     "config": { "type": "object", "additionalProperties": true },
-    "metadata": { "type": "object", "additionalProperties": true }
+    "metadata": { "type": "object", "additionalProperties": true },
+    "version": { "type": "integer" },
+    "state": {
+      "type": "object",
+      "properties": {
+        "currentPhase": { "type": "string" },
+        "knownFacts": { "type": "array", "items": { "type": "string" } },
+        "openQuestions": { "type": "array", "items": { "type": "string" } },
+        "actionHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": { "type": "string" },
+              "result": { "type": "object", "additionalProperties": true },
+              "timestamp": { "type": "string", "format": "date-time" }
+            },
+            "required": ["action", "timestamp"]
+          }
+        },
+        "confidenceSnapshot": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["currentPhase", "knownFacts", "openQuestions", "actionHistory", "confidenceSnapshot"]
+    }
   },
-  "required": ["id", "name", "target", "status", "createdAt", "updatedAt"]
+  "required": ["id", "name", "target", "status", "createdAt", "updatedAt", "state", "version"]
 }
