@@ -1,0 +1,62 @@
+{
+  "id": "base-recon-tools",
+  "name": "Base Reconnaissance Tools",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "id": "nmap-basic",
+      "name": "Nmap Basic Scan",
+      "description": "Performs a service version detection scan on a target.",
+      "category": "recon",
+      "tags": ["nmap", "scan", "port-discovery"],
+      "commandTemplate": "nmap -sV {{target}}",
+      "parameters": [
+        {
+          "name": "target",
+          "description": "The target IP or domain",
+          "required": true,
+          "source": "session_target"
+        }
+      ]
+    },
+    {
+      "id": "nmap-full",
+      "name": "Nmap Full Port Scan",
+      "description": "Scans all 65535 ports.",
+      "category": "recon",
+      "tags": ["nmap", "scan", "all-ports"],
+      "commandTemplate": "nmap -p- {{target}}",
+      "parameters": [
+        {
+          "name": "target",
+          "description": "The target IP or domain",
+          "required": true,
+          "source": "session_target"
+        }
+      ]
+    },
+    {
+      "id": "gobuster-dir",
+      "name": "Gobuster Directory Brute-force",
+      "description": "Discovers directories and files on a web server.",
+      "category": "recon",
+      "tags": ["web", "discovery", "bruteforce"],
+      "commandTemplate": "gobuster dir -u {{target}} -w {{wordlist}}",
+      "parameters": [
+        {
+          "name": "target",
+          "description": "The target URL",
+          "required": true,
+          "source": "session_target"
+        },
+        {
+          "name": "wordlist",
+          "description": "Path to the wordlist",
+          "required": true,
+          "source": "user_input",
+          "defaultValue": "/usr/share/wordlists/dirb/common.txt"
+        }
+      ]
+    }
+  ]
+}

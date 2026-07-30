@@ -12,6 +12,7 @@ import { MemoryEngine } from './engine/memory-engine';
 import { OrchestrationEngine } from './engine/orchestration-engine';
 import { WorkflowEngine } from './engine/workflow-engine';
 import { RulesEngine } from './engine/rules-engine';
+import { ToolRecommendationEngine } from './engine/tool-recommendation-engine';
 import path from 'path';
 
 const app = express();
@@ -29,6 +30,13 @@ const rulesRegistryPath = path.join(__dirname, 'registry', 'rules');
 const rulesEngine = new RulesEngine(rulesRegistryPath);
 rulesEngine.load().then(() => {
   console.log('Safety Rules Registry loaded.');
+});
+
+// Tool Catalog setup
+const toolRegistryPath = path.join(__dirname, 'registry', 'tools');
+const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath);
+toolRecommendationEngine.load().then(() => {
+  console.log('Tool Registry loaded.');
 });
 
 // Persistence & Engine setup
@@ -64,6 +72,7 @@ const orchestrator = new OrchestrationEngine(
   memoryEngine,
   workflowEngine,
   rulesEngine,
+  toolRecommendationEngine,
   modelProvider
 );
 

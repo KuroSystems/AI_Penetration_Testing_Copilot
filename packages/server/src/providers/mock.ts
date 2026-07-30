@@ -18,6 +18,12 @@ export class MockModelProvider implements ModelProvider {
       if (prompt.includes('192.168.1.100')) {
           recommendedAction = 'Scan 192.168.1.100';
       }
+      if (prompt.includes('port discovery scan')) {
+          recommendedAction = 'Perform a port discovery scan';
+      }
+      if (prompt.includes('directory discovery')) {
+          recommendedAction = 'Perform directory discovery';
+      }
       
       return {
         text: JSON.stringify({

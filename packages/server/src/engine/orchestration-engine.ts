@@ -14,6 +14,8 @@ import { ConfidenceScoringEngine } from './confidence-engine';
 import { ClarificationEngine } from './clarification-engine';
 import { WorkflowEngine } from './workflow-engine';
 import { RulesEngine } from './rules-engine';
+import { ToolRecommendationEngine } from './tool-recommendation-engine';
+import { CommandGenerationEngine } from './command-generation-engine';
 import { RuleAction } from '@ai-pentest/contracts';
 
 export interface PipelineStep {
@@ -42,6 +44,8 @@ export class OrchestrationEngine {
   private clarificationEngine: ClarificationEngine;
   private workflowEngine: WorkflowEngine;
   private rulesEngine: RulesEngine;
+  private toolRecommendationEngine: ToolRecommendationEngine;
+  private commandGenerationEngine: CommandGenerationEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -53,6 +57,7 @@ export class OrchestrationEngine {
     memoryEngine: MemoryEngine,
     workflowEngine: WorkflowEngine,
     rulesEngine: RulesEngine,
+    toolRecommendationEngine: ToolRecommendationEngine,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -63,6 +68,8 @@ export class OrchestrationEngine {
     this.memoryEngine = memoryEngine;
     this.workflowEngine = workflowEngine;
     this.rulesEngine = rulesEngine;
+    this.toolRecommendationEngine = toolRecommendationEngine;
+    this.commandGenerationEngine = new CommandGenerationEngine();
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -163,6 +170,30 @@ export class OrchestrationEngine {
         confidence: confidenceResult.score
       };
     } else {
+      // 10. Tool Recommendation & Command Generation (Phase 10)
+      const recommendations = this.toolRecommendationEngine.recommend(decision, updatedSession);
+      let toolInfo = '';
+      let toolData = null;
+
+      if (recommendations.length > 0) {
+        const topTool = recommendations[0].tool;
+        const generated = this.commandGenerationEngine.generate(topTool, updatedSession);
+        
+        if (generated.missingParameters.length === 0) {
+          toolInfo = `\n\nSuggested Command:\n\`\`\`bash\n${generated.command}\n\`\`\`\n(${generated.explanation})`;
+          toolData = {
+            toolId: topTool.id,
+            command: generated.command,
+            explanation: generated.explanation
+          };
+        } else {
+          // Missing params
+          const missing = generated.missingParameters.map(p => p.name).join(', ');
+          toolInfo = `\n\nI recommend using ${topTool.name}, but I need more information: ${missing}`;
+          toolData = { toolId: topTool.id, missingParameters: generated.missingParameters };
+        }
+      }
+
       // 9. Safety Layer (Phase 9)
       const safetyReport = this.rulesEngine.evaluate(decision, updatedSession);
       
@@ -176,19 +207,27 @@ export class OrchestrationEngine {
         };
       } else if (safetyReport.action === RuleAction.FLAG) {
         console.log(`Action FLAGED for confirmation: ${safetyReport.message}`);
-        assistantMessage = `WARNING: ${safetyReport.message}\n\nPlease confirm if you want to proceed with: ${decision.recommendedAction}`;
+        assistantMessage = `WARNING: ${safetyReport.message}\n\nPlease confirm if you want to proceed with: ${decision.recommendedAction}${toolInfo}`;
         finalResult = {
           ...decision,
           recommendedAction: 'NEEDS_CONFIRMATION',
-          safetyReport
+          safetyReport,
+          toolRecommendation: toolData
         };
       } else {
-        assistantMessage = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}`;
+        assistantMessage = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}${toolInfo}`;
         finalResult = {
           ...decision,
           confidence: confidenceResult.score,
-          safetyReport
+          safetyReport,
+          toolRecommendation: toolData
         };
+
+        // If tool was missing params and not blocked/flagged, override to clarification
+        if (toolData && 'missingParameters' in toolData) {
+            finalResult.recommendedAction = 'Clarification Required';
+            finalResult.questions = `To run ${toolData.toolId}, please provide: ${toolData.missingParameters.map((p: any) => p.name).join(', ')}`;
+        }
       }
     }
 
