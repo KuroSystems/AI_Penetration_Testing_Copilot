@@ -3,6 +3,7 @@ export * from './interfaces/prompt';
 export * from './interfaces/message';
 export * from './interfaces/plugin';
 export * from './interfaces/model';
+export * from './interfaces/memory';
 
 // We can also export JSON schemas as objects if needed
 import * as sessionSchema from './schemas/session.schema.json';

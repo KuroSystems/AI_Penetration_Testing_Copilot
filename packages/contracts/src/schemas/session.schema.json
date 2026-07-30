@@ -23,6 +23,7 @@
       "properties": {
         "currentPhase": { "type": "string" },
         "knownFacts": { "type": "array", "items": { "type": "string" } },
+        "pinnedFacts": { "type": "array", "items": { "type": "string" } },
         "openQuestions": { "type": "array", "items": { "type": "string" } },
         "actionHistory": {
           "type": "array",
@@ -36,9 +37,22 @@
             "required": ["action", "timestamp"]
           }
         },
+        "chatHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+              "content": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            },
+            "required": ["role", "content", "timestamp"]
+          }
+        },
+        "summary": { "type": "string" },
         "confidenceSnapshot": { "type": "number", "minimum": 0, "maximum": 1 }
       },
-      "required": ["currentPhase", "knownFacts", "openQuestions", "actionHistory", "confidenceSnapshot"]
+      "required": ["currentPhase", "knownFacts", "pinnedFacts", "openQuestions", "actionHistory", "chatHistory", "confidenceSnapshot"]
     }
   },
   "required": ["id", "name", "target", "status", "createdAt", "updatedAt", "state", "version"]

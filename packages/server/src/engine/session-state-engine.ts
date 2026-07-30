@@ -11,8 +11,10 @@ export class SessionStateEngine {
     const initialState: SessionState = {
       currentPhase: 'recon',
       knownFacts: [],
+      pinnedFacts: [],
       openQuestions: ['What are the open ports?', 'What services are running?'],
       actionHistory: [],
+      chatHistory: [],
       confidenceSnapshot: 0.1
     };
 
@@ -23,6 +25,39 @@ export class SessionStateEngine {
       metadata: {},
       state: initialState,
       version: 1
+    });
+  }
+
+  async addChatMessage(id: string, role: 'user' | 'assistant' | 'system', content: string): Promise<Session> {
+    const session = await this.repository.getById(id);
+    if (!session) throw new Error(`Session ${id} not found`);
+
+    const chatHistory = [
+      ...session.state.chatHistory,
+      { role, content, timestamp: new Date() }
+    ];
+
+    return this.repository.update(id, {
+      state: { ...session.state, chatHistory }
+    });
+  }
+
+  async pinFact(id: string, fact: string): Promise<Session> {
+    const session = await this.repository.getById(id);
+    if (!session) throw new Error(`Session ${id} not found`);
+    
+    const pinnedFacts = [...new Set([...(session.state.pinnedFacts || []), fact])];
+    return this.repository.update(id, { 
+      state: { ...session.state, pinnedFacts } 
+    });
+  }
+
+  async setSummary(id: string, summary: string): Promise<Session> {
+    const session = await this.repository.getById(id);
+    if (!session) throw new Error(`Session ${id} not found`);
+    
+    return this.repository.update(id, { 
+      state: { ...session.state, summary } 
     });
   }
 

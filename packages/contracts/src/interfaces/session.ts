@@ -6,16 +6,25 @@ export enum SessionStatus {
   FAILED = 'failed'
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+}
+
 export interface SessionState {
   currentPhase: string;
   knownFacts: string[];
+  pinnedFacts: string[]; // Facts that should never be compressed
   openQuestions: string[];
   actionHistory: Array<{
     action: string;
     result: any;
     timestamp: Date;
   }>;
-  confidenceSnapshot: number; // 0.0 to 1.0
+  chatHistory: ChatMessage[]; // Added for memory
+  summary?: string; // Long-term memory summary
+  confidenceSnapshot: number;
 }
 
 export interface Session {

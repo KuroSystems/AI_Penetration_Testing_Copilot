@@ -7,6 +7,8 @@ import { PromptRegistry } from './registry/prompt-registry';
 import { PromptLoader } from './registry/prompt-loader';
 import { FileSessionRepository } from './persistence/file-session-repository';
 import { SessionStateEngine } from './engine/session-state-engine';
+import { TokenBudgetCompressionEngine } from './engine/compression-engine';
+import { MemoryEngine } from './engine/memory-engine';
 import path from 'path';
 
 const app = express();
@@ -15,6 +17,7 @@ const port = process.env.PORT || 3000;
 // Persistence & Engine setup
 const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
 const sessionEngine = new SessionStateEngine(sessionRepo);
+const compressionEngine = new TokenBudgetCompressionEngine();
 
 // Registry setup
 const promptRegistry = new PromptRegistry(path.join(__dirname, 'registry', 'prompts'));
@@ -33,6 +36,8 @@ if (process.env.USE_MOCK === 'true') {
 } else {
   modelProvider = new OllamaProvider(process.env.OLLAMA_URL || 'http://localhost:11434');
 }
+
+const memoryEngine = new MemoryEngine(modelProvider, sessionEngine);
 
 app.use(cors());
 app.use(express.json());
@@ -60,34 +65,85 @@ app.get('/models', async (req: Request, res: Response) => {
 
 // Generate text
 app.post('/generate', async (req: Request, res: Response) => {
-  const { prompt, model, stream, tags, variables } = req.body;
+  const { prompt, model, stream, tags, variables, sessionId } = req.body;
   
   let finalPrompt = prompt;
+  let messages: Array<{ role: string, content: string }> = [];
+  let systemPrompt = '';
 
-  // If tags are provided, use the prompt loader to assemble the system prompt
-  if (tags && Array.isArray(tags)) {
+  if (sessionId) {
+    const session = await sessionEngine.getSession(sessionId);
+    if (session) {
+      // Assemble system prompt from registry + tags
+      if (tags && Array.isArray(tags)) {
+        systemPrompt = promptLoader.assemble(tags, variables || {});
+      }
+      
+      // Use compression engine to get budget-compliant context
+      const context = await compressionEngine.compress(session, {
+        maxTokens: 4000,
+        reserveForResponse: 500,
+        shortTermHistoryLimit: 20
+      });
+      
+      // Combine registry-based system prompt with compressed state info
+      systemPrompt = systemPrompt + '\n\n' + context.systemPrompt;
+      messages = context.messages;
+      
+      // Add the current prompt as the latest user message if provided
+      if (prompt) {
+        messages.push({ role: 'user', content: prompt });
+        // Also save to session history
+        await sessionEngine.addChatMessage(sessionId, 'user', prompt);
+      }
+      
+      finalPrompt = systemPrompt; // In some models, system prompt is passed separately, but for generic 'generateText' we might need to handle it.
+      // For now, let's assume generateText takes a single prompt or we can adjust ModelProvider.
+    }
+  } else if (tags && Array.isArray(tags)) {
     const assembledPrompt = promptLoader.assemble(tags, variables || {});
     finalPrompt = assembledPrompt + (prompt ? '\n\n' + prompt : '');
   }
   
-  if (!finalPrompt) {
-    return res.status(400).json({ error: 'Prompt or tags are required' });
+  if (!finalPrompt && messages.length === 0) {
+    return res.status(400).json({ error: 'Prompt, tags, or sessionId are required' });
   }
 
   try {
+    // If we have messages, we might need a ChatModelProvider interface. 
+    // For Phase 4 simplicity, we'll continue using generateText with a combined prompt if sessionId is used.
+    let combinedPrompt = finalPrompt;
+    if (messages.length > 0) {
+        combinedPrompt = finalPrompt + '\n\n' + messages.map(m => `${m.role}: ${m.content}`).join('\n');
+    }
+
     if (stream && modelProvider.streamText) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
-      const stream = modelProvider.streamText(finalPrompt, { modelName: model });
+      const stream = modelProvider.streamText(combinedPrompt, { modelName: model });
+      let fullResponse = '';
       for await (const chunk of stream) {
         res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+        fullResponse += chunk;
       }
+      
+      if (sessionId) {
+          await sessionEngine.addChatMessage(sessionId, 'assistant', fullResponse);
+          await memoryEngine.refreshLongTermMemory(sessionId);
+      }
+      
       res.write('data: [DONE]\n\n');
       res.end();
     } else {
-      const result = await modelProvider.generateText(finalPrompt, { modelName: model });
+      const result = await modelProvider.generateText(combinedPrompt, { modelName: model });
+      
+      if (sessionId) {
+          await sessionEngine.addChatMessage(sessionId, 'assistant', result.text);
+          await memoryEngine.refreshLongTermMemory(sessionId);
+      }
+      
       res.json(result);
     }
   } catch (error: any) {
@@ -144,6 +200,33 @@ app.post('/sessions/:id/facts', async (req: Request, res: Response) => {
   try {
     const session = await sessionEngine.addFact(req.params.id, fact);
     res.json(session);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/sessions/:id/context', async (req: Request, res: Response) => {
+  try {
+    const session = await sessionEngine.getSession(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    
+    const config = {
+      maxTokens: parseInt(req.query.maxTokens as string) || 4000,
+      reserveForResponse: parseInt(req.query.reserveForResponse as string) || 500,
+      shortTermHistoryLimit: parseInt(req.query.shortTermHistoryLimit as string) || 20
+    };
+    
+    const context = await compressionEngine.compress(session, config);
+    res.json(context);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/sessions/:id/memory/refresh', async (req: Request, res: Response) => {
+  try {
+    await memoryEngine.refreshLongTermMemory(req.params.id);
+    res.json({ message: 'Memory refresh triggered' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
