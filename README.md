@@ -62,6 +62,8 @@ npm test             # contract conformance suite
 npm run verify       # typecheck + stale-artifact check + tests
 ```
 
+CI runs the same checks (see [`docs/ci/README.md`](docs/ci/README.md)).
+
 Regenerate the published artefacts after changing a schema:
 
 ```bash
