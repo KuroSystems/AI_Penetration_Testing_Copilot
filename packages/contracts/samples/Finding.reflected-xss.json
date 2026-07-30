@@ -1,0 +1,54 @@
+{
+  "id": "fnd_01J9Z8Q2X4T5V6W7Y8Z9A0B1H8",
+  "fingerprint": "shop.example.com|reflected-xss|/search:q",
+  "title": "Reflected cross-site scripting in product search",
+  "summary": "The search endpoint reflects the `q` parameter into the response without output encoding.",
+  "detail": "An attacker can craft a link that executes JavaScript in a victim browser in the origin of the storefront.",
+  "status": "proposed",
+  "severity": "high",
+  "confidence": 0.85,
+  "cvss": {
+    "version": "3.1",
+    "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "baseScore": 6.1
+  },
+  "classification": {
+    "cwe": [
+      "CWE-79"
+    ],
+    "owaspTop10": [
+      "A03:2021"
+    ],
+    "mitreAttack": [
+      "T1059.007"
+    ]
+  },
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "targetIds": [
+    "tgt_01J9Z8Q2X4T5V6W7Y8Z9A0B1G7"
+  ],
+  "location": {
+    "uri": "https://shop.example.com/search",
+    "parameter": "q",
+    "method": "GET"
+  },
+  "evidenceIds": [
+    "evd_01J9Z8Q2X4T5V6W7Y8Z9A0B1J9"
+  ],
+  "impact": "Session hijacking of authenticated shoppers, phishing within a trusted origin.",
+  "likelihood": "medium",
+  "remediation": {
+    "summary": "Context-aware output encoding plus a strict Content-Security-Policy.",
+    "effort": "low",
+    "references": [
+      "https://owasp.org/www-community/attacks/xss/"
+    ]
+  },
+  "discoveredVia": "vulnerability-scan",
+  "discoveredAt": "2026-07-30T09:15:00.000Z",
+  "reportedBy": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+  "tags": [
+    "web",
+    "xss"
+  ]
+}

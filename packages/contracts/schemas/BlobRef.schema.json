@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/BlobRef.schema.json",
+  "title": "Blob reference",
+  "description": "Pointer to stored bytes.",
+  "x-contract": {
+    "id": "BlobRef",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "inlineBase64": {
+      "type": "string",
+      "maxLength": 1048576
+    },
+    "mediaType": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}(;\\s?.+)?$",
+      "description": "IANA media type, e.g. \"application/json\""
+    },
+    "sizeBytes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^(sha256|sha512|blake3):[a-f0-9]{32,128}$",
+      "description": "Algorithm-prefixed content digest, e.g. \"sha256:<hex>\""
+    },
+    "encoding": {
+      "type": "string",
+      "enum": [
+        "identity",
+        "gzip",
+        "zstd",
+        "br"
+      ]
+    }
+  },
+  "required": [
+    "mediaType"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/CompletionStreamEvent.schema.json",
+  "title": "Completion stream event",
+  "description": "Incremental streaming event from a provider.",
+  "x-contract": {
+    "id": "CompletionStreamEvent",
+    "group": "model",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "start"
+        },
+        "callId": {
+          "type": "string",
+          "pattern": "^mcl_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+          "description": "Model call identifier (`mcl_<ulid|uuid>`)"
+        },
+        "model": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "type",
+        "callId",
+        "model"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "text-delta"
+        },
+        "delta": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "delta"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "reasoning-delta"
+        },
+        "delta": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "delta"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool-call-delta"
+        },
+        "toolCallId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "toolName": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "argumentsDelta": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "toolCallId",
+        "argumentsDelta"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool-call"
+        },
+        "toolCall": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "tool-call"
+            },
+            "toolCallId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^tcl_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+                  "description": "Tool call identifier (`tcl_<ulid|uuid>`)"
+                },
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              ]
+            },
+            "toolName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "arguments": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+              }
+            },
+            "rawArguments": {
+              "type": "string",
+              "maxLength": 200000
+            }
+          },
+          "required": [
+            "type",
+            "toolCallId",
+            "toolName",
+            "arguments"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "toolCall"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "usage"
+        },
+        "usage": {
+          "type": "object",
+          "properties": {
+            "inputTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "outputTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "totalTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reasoningTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "cachedInputTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "usage"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "error"
+        },
+        "error": {
+          "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/ContractError"
+        }
+      },
+      "required": [
+        "type",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "finish"
+        },
+        "finishReason": {
+          "type": "string",
+          "enum": [
+            "stop",
+            "length",
+            "tool-calls",
+            "content-filter",
+            "cancelled",
+            "error",
+            "other"
+          ]
+        },
+        "response": {
+          "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/CompletionResponse.schema.json"
+        }
+      },
+      "required": [
+        "type",
+        "finishReason"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ProviderConfig.schema.json",
+  "title": "Model provider configuration",
+  "description": "Registration data for a model backend. Contains no secrets.",
+  "x-contract": {
+    "id": "ProviderConfig",
+    "group": "model",
+    "contractsVersion": "0.1.0",
+    "foundational": true
+  },
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "description": "Version of the contract schema this document conforms to"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$",
+      "description": "Lowercase machine name, e.g. \"recon.port-scan\""
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "ollama",
+        "llama-cpp",
+        "lm-studio",
+        "openai-compatible",
+        "anthropic",
+        "custom",
+        "mock"
+      ]
+    },
+    "baseUrl": {
+      "type": "string",
+      "maxLength": 2048,
+      "format": "uri",
+      "description": "Absolute URI"
+    },
+    "credentialRef": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "hosting": {
+      "type": "string",
+      "enum": [
+        "local",
+        "self-hosted",
+        "remote-cloud",
+        "unknown"
+      ]
+    },
+    "defaultModel": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647,
+      "description": "Duration in milliseconds"
+    },
+    "maxRetries": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "rateLimit": {
+      "type": "object",
+      "properties": {
+        "requestsPerMinute": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "tokensPerMinute": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxConcurrent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "additionalProperties": false
+    },
+    "headers": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "maxLength": 64
+      },
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 1024
+      }
+    },
+    "models": {
+      "maxItems": 256,
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/ModelDescriptor.schema.json"
+      }
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "name",
+    "kind",
+    "hosting"
+  ],
+  "additionalProperties": false
+}

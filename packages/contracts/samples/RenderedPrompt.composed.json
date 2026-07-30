@@ -1,0 +1,35 @@
+{
+  "id": "prn_01J9Z8Q2X4T5V6W7Y8Z9A0B1N2",
+  "composedFrom": [
+    "guardrail.scope-discipline@1.0.3",
+    "persona.pentest-analyst@1.1.0",
+    "analysis.reflected-input-triage@1.2.0"
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are assisting an authorised penetration test…",
+      "cacheable": true
+    },
+    {
+      "role": "user",
+      "content": "Target: https://shop.example.com/search\nParameter: q\n…"
+    }
+  ],
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "exploitable"
+    ],
+    "properties": {
+      "exploitable": {
+        "type": "boolean"
+      }
+    }
+  },
+  "estimatedTokens": 912,
+  "digest": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  "renderedAt": "2026-07-30T09:15:00.000Z",
+  "truncated": false,
+  "warnings": []
+}

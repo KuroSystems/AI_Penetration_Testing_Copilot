@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "response",
+  "id": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1Q4",
+  "name": "model.completion.create",
+  "source": "model-gateway",
+  "destination": "orchestration",
+  "createdAt": "2026-07-30T09:15:04.250Z",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5",
+  "causationId": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1P3",
+  "inReplyTo": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1P3",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "status": "ok",
+  "durationMs": 4250,
+  "payloadSchema": {
+    "id": "CompletionResponse",
+    "version": "0.1.0"
+  },
+  "payload": {
+    "finishReason": "stop",
+    "text": "Four hosts, nine services, one likely XSS."
+  }
+}

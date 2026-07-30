@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ModelDescriptor.schema.json",
+  "title": "Model descriptor",
+  "description": "Declared capabilities and limits of one model exposed by a provider.",
+  "x-contract": {
+    "id": "ModelDescriptor",
+    "group": "model",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "providerName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$",
+      "description": "Lowercase machine name, e.g. \"recon.port-scan\""
+    },
+    "modelName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "family": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "hosting": {
+      "type": "string",
+      "enum": [
+        "local",
+        "self-hosted",
+        "remote-cloud",
+        "unknown"
+      ]
+    },
+    "capabilities": {
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "chat",
+          "completion",
+          "tools",
+          "parallel-tool-calls",
+          "json-mode",
+          "json-schema",
+          "streaming",
+          "vision",
+          "audio-input",
+          "embeddings",
+          "reranking",
+          "reasoning",
+          "logprobs",
+          "seed",
+          "system-prompt",
+          "prefix-caching",
+          "stop-sequences",
+          "token-counting"
+        ]
+      }
+    },
+    "contextWindowTokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "maxOutputTokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "embeddingDimensions": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "inputModalities": {
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "text",
+          "image",
+          "audio"
+        ]
+      }
+    },
+    "pricing": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "inputPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "outputPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cachedInputPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "perRequest": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "currency"
+      ],
+      "additionalProperties": false
+    },
+    "maxSensitivity": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted",
+        "secret"
+      ],
+      "description": "Handling classification; drives redaction and egress policy"
+    },
+    "knowledgeCutoff": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "deprecated": {
+      "type": "boolean"
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "ref",
+    "providerName",
+    "modelName",
+    "hosting",
+    "capabilities"
+  ],
+  "additionalProperties": false
+}

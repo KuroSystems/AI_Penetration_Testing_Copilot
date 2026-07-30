@@ -1,0 +1,233 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+  "authorizationId": "auth_01J9Z8Q2X4T5V6W7Y8Z9A0B1F6",
+  "title": "External web assessment — week 1",
+  "description": "Automated recon and vulnerability analysis with human approval for exploitation.",
+  "state": "running",
+  "phase": "vulnerability-analysis",
+  "autonomy": "supervised",
+  "scope": {
+    "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+    "name": "Example Corp — external web assessment",
+    "description": "Grey-box assessment of the public storefront and its API.",
+    "client": "Example Corp",
+    "rules": [
+      {
+        "effect": "include",
+        "kind": "domain",
+        "pattern": "*.example.com",
+        "note": "All staging subdomains"
+      },
+      {
+        "effect": "include",
+        "kind": "ip-range",
+        "pattern": "203.0.113.0/24",
+        "ports": [
+          {
+            "from": 1,
+            "to": 65535
+          }
+        ]
+      },
+      {
+        "effect": "exclude",
+        "kind": "url",
+        "pattern": "https://shop.example.com/admin/*",
+        "note": "Client request"
+      },
+      {
+        "effect": "exclude",
+        "kind": "domain",
+        "pattern": "payments.example.com",
+        "note": "Third-party processor"
+      }
+    ],
+    "targets": [
+      {
+        "id": "tgt_01J9Z8Q2X4T5V6W7Y8Z9A0B1G7",
+        "kind": "web-application",
+        "identifier": "https://shop.example.com",
+        "displayName": "Storefront",
+        "hostnames": [
+          "shop.example.com"
+        ],
+        "ipAddresses": [
+          "203.0.113.10"
+        ],
+        "urls": [
+          "https://shop.example.com"
+        ],
+        "ports": [
+          {
+            "from": 443,
+            "to": 443
+          }
+        ],
+        "protocols": [
+          "tcp"
+        ],
+        "environment": "staging",
+        "criticality": 4,
+        "dataSensitivity": "confidential",
+        "owner": "Web Platform Team",
+        "tags": [
+          "pci",
+          "external"
+        ],
+        "attributes": {
+          "stack": "nginx/1.25 + node 20",
+          "waf": "cloudflare"
+        }
+      }
+    ],
+    "rulesOfEngagement": {
+      "allowedActivities": [
+        "passive-recon",
+        "active-scan",
+        "vulnerability-scan",
+        "authenticated-scan"
+      ],
+      "forbiddenActivities": [
+        "denial-of-service",
+        "social-engineering",
+        "physical"
+      ],
+      "testingWindows": [
+        {
+          "startsAt": "2026-07-30T00:00:00.000Z",
+          "endsAt": "2026-08-06T00:00:00.000Z",
+          "note": "Agreed window"
+        }
+      ],
+      "maxRequestsPerSecond": 20,
+      "maxConcurrentTasks": 4,
+      "requiresApprovalFor": [
+        "exploitation",
+        "post-exploitation"
+      ],
+      "allowRemoteModelEgress": false,
+      "dataHandling": "confidential",
+      "emergencyContact": "soc@example.com / +1-555-0100",
+      "notes": "Stop immediately on any sign of production impact."
+    },
+    "startsAt": "2026-07-30T00:00:00.000Z",
+    "endsAt": "2026-08-06T00:00:00.000Z",
+    "tags": [
+      "external",
+      "web"
+    ]
+  },
+  "objectives": [
+    {
+      "id": "obj-1",
+      "statement": "Enumerate all externally reachable services",
+      "priority": "must",
+      "satisfied": true
+    },
+    {
+      "id": "obj-2",
+      "statement": "Identify OWASP Top 10 exposure in the storefront",
+      "priority": "must",
+      "satisfied": false
+    }
+  ],
+  "participants": [
+    {
+      "actorId": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+      "role": "lead-tester",
+      "joinedAt": "2026-07-30T09:00:00.000Z"
+    },
+    {
+      "actorId": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+      "role": "automation",
+      "joinedAt": "2026-07-30T09:00:00.000Z"
+    }
+  ],
+  "ownerActorId": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+  "modelPolicy": {
+    "preferred": [
+      "ollama/llama3.1:70b",
+      "ollama/qwen2.5-coder:32b"
+    ],
+    "fallback": [
+      "ollama/llama3.1:8b"
+    ],
+    "requireLocalOnly": true,
+    "maxEgressSensitivity": "internal",
+    "temperature": 0.2,
+    "maxOutputTokens": 4096,
+    "seed": 1337
+  },
+  "budget": {
+    "maxWallClockMs": 14400000,
+    "maxModelCalls": 500,
+    "maxInputTokens": 2000000,
+    "maxOutputTokens": 400000,
+    "maxToolInvocations": 300,
+    "maxCost": {
+      "currency": "USD",
+      "minorUnits": 2000
+    },
+    "softStopThreshold": 0.9
+  },
+  "usage": {
+    "elapsedMs": 900000,
+    "modelCalls": 42,
+    "inputTokens": 180400,
+    "outputTokens": 31250,
+    "toolInvocations": 17,
+    "estimatedCost": {
+      "currency": "USD",
+      "minorUnits": 0
+    },
+    "findingsCount": 3,
+    "errorsCount": 1
+  },
+  "context": {
+    "conversationId": "cnv_01J9Z8Q2X4T5V6W7Y8Z9A0B2A1",
+    "knowledgeCollections": [
+      "owasp-wstg",
+      "client-notes"
+    ],
+    "pinnedPromptModuleIds": [
+      "pmd_01J9Z8Q2X4T5V6W7Y8Z9A0B1M1"
+    ],
+    "enabledPluginIds": [
+      "plg_01J9Z8Q2X4T5V6W7Y8Z9A0B1S6"
+    ],
+    "summary": "Recon complete: 4 hosts, 9 services. Storefront search endpoint looks XSS-prone.",
+    "scratchpad": {
+      "planning": {
+        "openQuestions": [
+          "Is /admin truly out of scope?"
+        ]
+      }
+    }
+  },
+  "stepIds": [
+    "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D3",
+    "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D4"
+  ],
+  "pendingApprovalIds": [
+    "apr_01J9Z8Q2X4T5V6W7Y8Z9A0B1Y1"
+  ],
+  "findingIds": [
+    "fnd_01J9Z8Q2X4T5V6W7Y8Z9A0B1H8"
+  ],
+  "createdAt": "2026-07-30T09:00:00.000Z",
+  "updatedAt": "2026-07-30T09:15:04.250Z",
+  "startedAt": "2026-07-30T09:00:00.000Z",
+  "revision": 27,
+  "createdByVersion": "0.1.0",
+  "timezone": "Asia/Kolkata",
+  "sensitivity": "confidential",
+  "tags": [
+    "web",
+    "external"
+  ],
+  "metadata": {
+    "ticket": "PT-1042"
+  }
+}

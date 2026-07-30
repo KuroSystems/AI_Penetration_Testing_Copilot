@@ -1,0 +1,39 @@
+{
+  "name": "@aiptc/contracts",
+  "version": "0.1.0",
+  "description": "Phase 0 contracts: schemas, types and interfaces every AI Penetration Testing Copilot engine must honor.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "samples",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "schemas": "tsx scripts/generate-json-schema.ts && tsx scripts/generate-samples.ts",
+    "schemas:check": "tsx scripts/generate-json-schema.ts --check && tsx scripts/generate-samples.ts --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "samples": "tsx scripts/generate-samples.ts"
+  },
+  "dependencies": {
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

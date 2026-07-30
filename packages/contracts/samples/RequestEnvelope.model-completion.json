@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "request",
+  "id": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1P3",
+  "name": "model.completion.create",
+  "source": "orchestration",
+  "destination": "model-gateway",
+  "replyTo": "orchestration",
+  "createdAt": "2026-07-30T09:15:00.000Z",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "actor": {
+    "id": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+    "kind": "engine",
+    "displayName": "orchestration"
+  },
+  "trace": {
+    "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+  },
+  "priority": "normal",
+  "deliveryMode": "at-most-once",
+  "idempotencyKey": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2:step:12:attempt:1",
+  "attempt": 1,
+  "timeoutMs": 60000,
+  "stream": false,
+  "contentType": "application/json",
+  "payloadSchema": {
+    "id": "CompletionRequest",
+    "version": "0.1.0"
+  },
+  "sensitivity": "confidential",
+  "redactions": [
+    {
+      "pointer": "/messages/1/content",
+      "mode": "hash",
+      "reason": "May contain target response data"
+    }
+  ],
+  "payload": {
+    "model": "ollama/llama3.1:70b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Summarise the recon findings."
+      }
+    ]
+  }
+}

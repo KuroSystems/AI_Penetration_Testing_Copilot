@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Actor.schema.json",
+  "title": "Actor",
+  "description": "A human, engine, model, plugin or system principal that can cause changes.",
+  "x-contract": {
+    "id": "Actor",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^act_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Actor identifier (`act_<ulid|uuid>`)"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "human",
+        "engine",
+        "model",
+        "plugin",
+        "system",
+        "external"
+      ]
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "roles": {
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "owner",
+          "lead-tester",
+          "tester",
+          "reviewer",
+          "observer",
+          "automation"
+        ]
+      }
+    },
+    "engine": {
+      "type": "string",
+      "enum": [
+        "orchestration",
+        "planning",
+        "prompt",
+        "model-gateway",
+        "tooling",
+        "plugin-host",
+        "knowledge",
+        "evidence",
+        "reporting",
+        "policy",
+        "audit",
+        "telemetry",
+        "storage",
+        "ui-gateway"
+      ],
+      "description": "Logical engine role addressed on the message bus"
+    },
+    "pluginId": {
+      "type": "string",
+      "pattern": "^plg_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Plugin identifier (`plg_<ulid|uuid>`)"
+    },
+    "modelRef": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "subject": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+    },
+    "onBehalfOf": {
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^act_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+        "description": "Actor identifier (`act_<ulid|uuid>`)"
+      }
+    },
+    "authenticatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "displayName"
+  ],
+  "additionalProperties": false
+}

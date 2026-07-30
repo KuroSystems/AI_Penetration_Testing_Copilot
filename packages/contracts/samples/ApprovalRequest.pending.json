@@ -1,0 +1,15 @@
+{
+  "id": "apr_01J9Z8Q2X4T5V6W7Y8Z9A0B1Y1",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "requestedAt": "2026-07-30T09:15:04.250Z",
+  "requestedBy": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+  "summary": "Run an authenticated exploitation check against the storefront search endpoint",
+  "detail": "Sends a benign proof-of-concept payload that writes a marker string into the DOM.",
+  "activityClass": "exploitation",
+  "blocks": [
+    "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D4"
+  ],
+  "riskLevel": "medium",
+  "expiresAt": "2026-07-30T11:00:00.000Z",
+  "status": "pending"
+}

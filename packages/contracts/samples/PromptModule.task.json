@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "pmd_01J9Z8Q2X4T5V6W7Y8Z9A0B1M1",
+  "key": "analysis.reflected-input-triage",
+  "version": "1.2.0",
+  "kind": "task",
+  "title": "Triage reflected input for XSS",
+  "description": "Decides whether a reflected parameter is exploitable and proposes a proof of concept.",
+  "status": "approved",
+  "language": "en",
+  "templateEngine": "mustache",
+  "parts": [
+    {
+      "role": "system",
+      "content": "You are assisting an authorised penetration test. Only reason about the target described below. Never fabricate evidence.",
+      "cacheable": true,
+      "order": 0
+    },
+    {
+      "role": "user",
+      "content": "Target: {{targetUrl}}\nParameter: {{parameter}}\nObserved response excerpt:\n```\n{{responseExcerpt}}\n```\nDecide whether this is exploitable and explain why.",
+      "order": 10
+    }
+  ],
+  "extends": [
+    "persona.pentest-analyst@^1.0.0"
+  ],
+  "requires": [
+    "guardrail.scope-discipline@^1.0.0"
+  ],
+  "conflictsWith": [
+    "persona.red-team-operator@^1.0.0"
+  ],
+  "priority": 100,
+  "variables": [
+    {
+      "name": "targetUrl",
+      "type": "string",
+      "required": true,
+      "description": "Absolute URL under test",
+      "example": "https://shop.example.com/search"
+    },
+    {
+      "name": "parameter",
+      "type": "string",
+      "required": true,
+      "description": "Reflected parameter name",
+      "example": "q"
+    },
+    {
+      "name": "responseExcerpt",
+      "type": "string",
+      "required": true,
+      "description": "Raw response snippet containing the reflection",
+      "maxLength": 4000,
+      "sensitivity": "confidential",
+      "trust": "untrusted",
+      "sanitizer": "fenced"
+    }
+  ],
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "exploitable",
+      "rationale"
+    ],
+    "properties": {
+      "exploitable": {
+        "type": "boolean"
+      },
+      "rationale": {
+        "type": "string"
+      },
+      "proofOfConcept": {
+        "type": "string"
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "additionalProperties": false
+  },
+  "outputFormat": "json-schema",
+  "expectedTools": [
+    "http.request"
+  ],
+  "modelRequirements": {
+    "minContextTokens": 8000,
+    "maxOutputTokens": 1024,
+    "capabilities": [
+      "json-schema",
+      "reasoning"
+    ],
+    "preferredModels": [
+      "ollama/llama3.1:70b"
+    ],
+    "temperature": 0.1,
+    "stopSequences": [
+      "\n\n---"
+    ],
+    "estimatedPromptTokens": 900
+  },
+  "safety": {
+    "activityClasses": [
+      "vulnerability-scan"
+    ],
+    "requiresApproval": false,
+    "requiresScope": true,
+    "maxSensitivity": "confidential",
+    "localModelsOnly": true,
+    "reviewNotes": "Reviewed 2026-07-20; no instructions that could cause active exploitation."
+  },
+  "examples": [
+    {
+      "name": "unencoded reflection",
+      "variables": {
+        "targetUrl": "https://shop.example.com/search",
+        "parameter": "q",
+        "responseExcerpt": "<div><b>test</b></div>"
+      },
+      "expectedOutput": "{\"exploitable\":true,\"rationale\":\"Tags are rendered unencoded.\"}",
+      "inject": false
+    }
+  ],
+  "evaluations": [
+    {
+      "name": "returns valid json",
+      "kind": "json-schema",
+      "criterion": "{\"type\":\"object\",\"required\":[\"exploitable\"]}",
+      "severity": "error"
+    },
+    {
+      "name": "no fabricated payloads",
+      "kind": "not-contains",
+      "criterion": "I assume",
+      "severity": "warning"
+    }
+  ],
+  "author": "AIPTC core",
+  "ownerActorId": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+  "license": "MIT",
+  "references": [
+    "https://owasp.org/www-project-web-security-testing-guide/"
+  ],
+  "contentDigest": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  "contractsRange": "^0.1.0",
+  "createdAt": "2026-06-01T00:00:00.000Z",
+  "updatedAt": "2026-07-20T00:00:00.000Z",
+  "tags": [
+    "web",
+    "xss",
+    "triage"
+  ]
+}

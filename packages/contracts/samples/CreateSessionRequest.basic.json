@@ -1,0 +1,125 @@
+{
+  "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+  "authorizationId": "auth_01J9Z8Q2X4T5V6W7Y8Z9A0B1F6",
+  "title": "External web assessment — week 1",
+  "autonomy": "supervised",
+  "scope": {
+    "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+    "name": "Example Corp — external web assessment",
+    "description": "Grey-box assessment of the public storefront and its API.",
+    "client": "Example Corp",
+    "rules": [
+      {
+        "effect": "include",
+        "kind": "domain",
+        "pattern": "*.example.com",
+        "note": "All staging subdomains"
+      },
+      {
+        "effect": "include",
+        "kind": "ip-range",
+        "pattern": "203.0.113.0/24",
+        "ports": [
+          {
+            "from": 1,
+            "to": 65535
+          }
+        ]
+      },
+      {
+        "effect": "exclude",
+        "kind": "url",
+        "pattern": "https://shop.example.com/admin/*",
+        "note": "Client request"
+      },
+      {
+        "effect": "exclude",
+        "kind": "domain",
+        "pattern": "payments.example.com",
+        "note": "Third-party processor"
+      }
+    ],
+    "targets": [
+      {
+        "id": "tgt_01J9Z8Q2X4T5V6W7Y8Z9A0B1G7",
+        "kind": "web-application",
+        "identifier": "https://shop.example.com",
+        "displayName": "Storefront",
+        "hostnames": [
+          "shop.example.com"
+        ],
+        "ipAddresses": [
+          "203.0.113.10"
+        ],
+        "urls": [
+          "https://shop.example.com"
+        ],
+        "ports": [
+          {
+            "from": 443,
+            "to": 443
+          }
+        ],
+        "protocols": [
+          "tcp"
+        ],
+        "environment": "staging",
+        "criticality": 4,
+        "dataSensitivity": "confidential",
+        "owner": "Web Platform Team",
+        "tags": [
+          "pci",
+          "external"
+        ],
+        "attributes": {
+          "stack": "nginx/1.25 + node 20",
+          "waf": "cloudflare"
+        }
+      }
+    ],
+    "rulesOfEngagement": {
+      "allowedActivities": [
+        "passive-recon",
+        "active-scan",
+        "vulnerability-scan",
+        "authenticated-scan"
+      ],
+      "forbiddenActivities": [
+        "denial-of-service",
+        "social-engineering",
+        "physical"
+      ],
+      "testingWindows": [
+        {
+          "startsAt": "2026-07-30T00:00:00.000Z",
+          "endsAt": "2026-08-06T00:00:00.000Z",
+          "note": "Agreed window"
+        }
+      ],
+      "maxRequestsPerSecond": 20,
+      "maxConcurrentTasks": 4,
+      "requiresApprovalFor": [
+        "exploitation",
+        "post-exploitation"
+      ],
+      "allowRemoteModelEgress": false,
+      "dataHandling": "confidential",
+      "emergencyContact": "soc@example.com / +1-555-0100",
+      "notes": "Stop immediately on any sign of production impact."
+    },
+    "startsAt": "2026-07-30T00:00:00.000Z",
+    "endsAt": "2026-08-06T00:00:00.000Z",
+    "tags": [
+      "external",
+      "web"
+    ]
+  },
+  "ownerActorId": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+  "budget": {
+    "maxWallClockMs": 14400000,
+    "maxModelCalls": 500
+  },
+  "tags": [
+    "web"
+  ]
+}

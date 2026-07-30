@@ -1,0 +1,23 @@
+{
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "spanId": "00f067aa0ba902b7",
+  "parentSpanId": "00f067aa0ba902b6",
+  "name": "model.completion.create",
+  "kind": "client",
+  "startedAt": "2026-07-30T09:15:00.000Z",
+  "endedAt": "2026-07-30T09:15:04.250Z",
+  "durationMs": 4250,
+  "status": "ok",
+  "attributes": {
+    "model": "ollama/llama3.1:70b",
+    "inputTokens": 1842
+  },
+  "events": [
+    {
+      "name": "first-token",
+      "at": "2026-07-30T09:15:00.380Z"
+    }
+  ],
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5"
+}

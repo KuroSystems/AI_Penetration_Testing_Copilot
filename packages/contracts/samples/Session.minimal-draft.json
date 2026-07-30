@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B3C1",
+  "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+  "title": "Draft session",
+  "state": "draft",
+  "autonomy": "advisory",
+  "scope": {
+    "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+    "name": "Lab only",
+    "rules": [
+      {
+        "effect": "include",
+        "kind": "ip-range",
+        "pattern": "10.10.10.0/24"
+      }
+    ],
+    "rulesOfEngagement": {
+      "allowedActivities": [
+        "passive-recon"
+      ]
+    }
+  },
+  "ownerActorId": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+  "createdAt": "2026-07-30T09:00:00.000Z",
+  "updatedAt": "2026-07-30T09:00:00.000Z",
+  "revision": 0
+}

@@ -1,0 +1,8 @@
+{
+  "model": "ollama/nomic-embed-text",
+  "input": [
+    "Reflected XSS in the storefront search endpoint"
+  ],
+  "dimensions": 768,
+  "sensitivity": "internal"
+}

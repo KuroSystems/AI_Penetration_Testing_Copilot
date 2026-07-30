@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "0.1.0",
+  "name": "ollama",
+  "displayName": "Ollama (local)",
+  "kind": "ollama",
+  "baseUrl": "http://127.0.0.1:11434",
+  "hosting": "local",
+  "defaultModel": "ollama/llama3.1:8b",
+  "timeoutMs": 120000,
+  "maxRetries": 2,
+  "rateLimit": {
+    "maxConcurrent": 2
+  },
+  "models": [
+    {
+      "ref": "ollama/llama3.1:70b",
+      "providerName": "ollama",
+      "modelName": "llama3.1:70b",
+      "displayName": "Llama 3.1 70B (local)",
+      "family": "llama",
+      "version": "3.1",
+      "hosting": "local",
+      "capabilities": [
+        "chat",
+        "tools",
+        "json-mode",
+        "json-schema",
+        "streaming",
+        "system-prompt",
+        "seed",
+        "stop-sequences"
+      ],
+      "contextWindowTokens": 131072,
+      "maxOutputTokens": 8192,
+      "inputModalities": [
+        "text"
+      ],
+      "maxSensitivity": "restricted",
+      "knowledgeCutoff": "2024-12"
+    }
+  ],
+  "enabled": true
+}

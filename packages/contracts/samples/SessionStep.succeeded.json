@@ -1,0 +1,40 @@
+{
+  "id": "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D3",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "sequence": 12,
+  "title": "Fuzz search parameter for reflected input",
+  "intent": "Confirm whether the `q` parameter is reflected without encoding.",
+  "phase": "vulnerability-analysis",
+  "activityClass": "vulnerability-scan",
+  "status": "succeeded",
+  "executor": "plugin",
+  "executorRef": "aiptc.web-fuzzer.reflect",
+  "promptModuleId": "pmd_01J9Z8Q2X4T5V6W7Y8Z9A0B1M1",
+  "pluginId": "plg_01J9Z8Q2X4T5V6W7Y8Z9A0B1S6",
+  "input": {
+    "url": "https://shop.example.com/search",
+    "parameter": "q",
+    "payloadSet": "reflection-basic"
+  },
+  "output": {
+    "reflected": true,
+    "encoded": false,
+    "samples": 3
+  },
+  "startedAt": "2026-07-30T09:15:00.000Z",
+  "endedAt": "2026-07-30T09:15:04.250Z",
+  "durationMs": 4250,
+  "producedFindingIds": [
+    "fnd_01J9Z8Q2X4T5V6W7Y8Z9A0B1H8"
+  ],
+  "producedArtifactIds": [
+    "art_01J9Z8Q2X4T5V6W7Y8Z9A0B1K0"
+  ],
+  "dependsOn": [
+    "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D4"
+  ],
+  "attempt": 1,
+  "tags": [
+    "web"
+  ]
+}

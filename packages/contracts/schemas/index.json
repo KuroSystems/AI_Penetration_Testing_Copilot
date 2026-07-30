@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/index.json",
+  "title": "AI Penetration Testing Copilot — contract index",
+  "contractsVersion": "0.1.0",
+  "dialect": "https://json-schema.org/draft/2020-12/schema",
+  "contracts": [
+    {
+      "id": "Session",
+      "group": "session",
+      "title": "Session",
+      "description": "Root aggregate for one engagement run.",
+      "foundational": true,
+      "file": "Session.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Session.schema.json"
+    },
+    {
+      "id": "SessionStep",
+      "group": "session",
+      "title": "Session step",
+      "description": "A planned or executed unit of work inside a session.",
+      "foundational": false,
+      "file": "SessionStep.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/SessionStep.schema.json"
+    },
+    {
+      "id": "ApprovalRequest",
+      "group": "session",
+      "title": "Approval request",
+      "description": "Human decision gate blocking session work.",
+      "foundational": false,
+      "file": "ApprovalRequest.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ApprovalRequest.schema.json"
+    },
+    {
+      "id": "CreateSessionRequest",
+      "group": "session",
+      "title": "Create session request",
+      "description": "Payload accepted when creating a session.",
+      "foundational": false,
+      "file": "CreateSessionRequest.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/CreateSessionRequest.schema.json"
+    },
+    {
+      "id": "PromptModule",
+      "group": "prompt",
+      "title": "Prompt module",
+      "description": "Versioned, composable prompt unit with declared I/O and safety metadata.",
+      "foundational": true,
+      "file": "PromptModule.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/PromptModule.schema.json"
+    },
+    {
+      "id": "PromptRenderRequest",
+      "group": "prompt",
+      "title": "Prompt render request",
+      "description": "Request to compose and render prompt modules.",
+      "foundational": false,
+      "file": "PromptRenderRequest.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/PromptRenderRequest.schema.json"
+    },
+    {
+      "id": "RenderedPrompt",
+      "group": "prompt",
+      "title": "Rendered prompt",
+      "description": "Immutable rendered prompt ready for the model gateway.",
+      "foundational": false,
+      "file": "RenderedPrompt.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/RenderedPrompt.schema.json"
+    },
+    {
+      "id": "EngineMessage",
+      "group": "messaging",
+      "title": "Engine message",
+      "description": "Envelope for every engine-to-engine interaction.",
+      "foundational": true,
+      "file": "EngineMessage.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EngineMessage.schema.json"
+    },
+    {
+      "id": "RequestEnvelope",
+      "group": "messaging",
+      "title": "Request envelope",
+      "description": "Directed call expecting exactly one response.",
+      "foundational": false,
+      "file": "RequestEnvelope.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/RequestEnvelope.schema.json"
+    },
+    {
+      "id": "ResponseEnvelope",
+      "group": "messaging",
+      "title": "Response envelope",
+      "description": "Terminal reply to a request.",
+      "foundational": false,
+      "file": "ResponseEnvelope.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ResponseEnvelope.schema.json"
+    },
+    {
+      "id": "EventEnvelope",
+      "group": "messaging",
+      "title": "Event envelope",
+      "description": "Broadcast fact published on the event bus.",
+      "foundational": false,
+      "file": "EventEnvelope.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EventEnvelope.schema.json"
+    },
+    {
+      "id": "StreamChunkEnvelope",
+      "group": "messaging",
+      "title": "Stream chunk envelope",
+      "description": "Ordered chunk of a streaming response.",
+      "foundational": false,
+      "file": "StreamChunkEnvelope.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/StreamChunkEnvelope.schema.json"
+    },
+    {
+      "id": "DomainEvent",
+      "group": "messaging",
+      "title": "Domain event",
+      "description": "Catalogued event name plus payload.",
+      "foundational": false,
+      "file": "DomainEvent.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/DomainEvent.schema.json"
+    },
+    {
+      "id": "PluginManifest",
+      "group": "plugin",
+      "title": "Plugin manifest",
+      "description": "Declarative plugin description: contributions, runtime and permissions.",
+      "foundational": true,
+      "file": "PluginManifest.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/PluginManifest.schema.json"
+    },
+    {
+      "id": "InstalledPlugin",
+      "group": "plugin",
+      "title": "Installed plugin",
+      "description": "Host-side record of an installed plugin.",
+      "foundational": false,
+      "file": "InstalledPlugin.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/InstalledPlugin.schema.json"
+    },
+    {
+      "id": "ProviderConfig",
+      "group": "model",
+      "title": "Model provider configuration",
+      "description": "Registration data for a model backend. Contains no secrets.",
+      "foundational": true,
+      "file": "ProviderConfig.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ProviderConfig.schema.json"
+    },
+    {
+      "id": "ModelDescriptor",
+      "group": "model",
+      "title": "Model descriptor",
+      "description": "Declared capabilities and limits of one model.",
+      "foundational": false,
+      "file": "ModelDescriptor.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ModelDescriptor.schema.json"
+    },
+    {
+      "id": "CompletionRequest",
+      "group": "model",
+      "title": "Completion request",
+      "description": "Provider-agnostic chat/completion request.",
+      "foundational": false,
+      "file": "CompletionRequest.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/CompletionRequest.schema.json"
+    },
+    {
+      "id": "CompletionResponse",
+      "group": "model",
+      "title": "Completion response",
+      "description": "Normalised provider response.",
+      "foundational": false,
+      "file": "CompletionResponse.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/CompletionResponse.schema.json"
+    },
+    {
+      "id": "CompletionStreamEvent",
+      "group": "model",
+      "title": "Completion stream event",
+      "description": "Incremental streaming event from a provider.",
+      "foundational": false,
+      "file": "CompletionStreamEvent.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/CompletionStreamEvent.schema.json"
+    },
+    {
+      "id": "EmbeddingRequest",
+      "group": "model",
+      "title": "Embedding request",
+      "description": "Provider-agnostic embedding request.",
+      "foundational": false,
+      "file": "EmbeddingRequest.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EmbeddingRequest.schema.json"
+    },
+    {
+      "id": "EmbeddingResponse",
+      "group": "model",
+      "title": "Embedding response",
+      "description": "Embedding vectors returned by a provider.",
+      "foundational": false,
+      "file": "EmbeddingResponse.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EmbeddingResponse.schema.json"
+    },
+    {
+      "id": "Actor",
+      "group": "domain",
+      "title": "Actor",
+      "description": "Principal that can cause changes.",
+      "foundational": false,
+      "file": "Actor.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Actor.schema.json"
+    },
+    {
+      "id": "ActorRef",
+      "group": "domain",
+      "title": "Actor reference",
+      "description": "Compact actor reference for high-volume records.",
+      "foundational": false,
+      "file": "ActorRef.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/ActorRef.schema.json"
+    },
+    {
+      "id": "EngagementScope",
+      "group": "domain",
+      "title": "Engagement scope",
+      "description": "What may be tested and how.",
+      "foundational": false,
+      "file": "EngagementScope.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EngagementScope.schema.json"
+    },
+    {
+      "id": "RulesOfEngagement",
+      "group": "domain",
+      "title": "Rules of engagement",
+      "description": "Operational constraints agreed with the client.",
+      "foundational": false,
+      "file": "RulesOfEngagement.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/RulesOfEngagement.schema.json"
+    },
+    {
+      "id": "TargetAsset",
+      "group": "domain",
+      "title": "Target asset",
+      "description": "A single asset that may be tested.",
+      "foundational": false,
+      "file": "TargetAsset.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/TargetAsset.schema.json"
+    },
+    {
+      "id": "AuthorizationRecord",
+      "group": "domain",
+      "title": "Authorization record",
+      "description": "Evidence that testing is authorised.",
+      "foundational": false,
+      "file": "AuthorizationRecord.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/AuthorizationRecord.schema.json"
+    },
+    {
+      "id": "Finding",
+      "group": "domain",
+      "title": "Finding",
+      "description": "A security weakness with evidence and scoring.",
+      "foundational": false,
+      "file": "Finding.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Finding.schema.json"
+    },
+    {
+      "id": "Evidence",
+      "group": "domain",
+      "title": "Evidence",
+      "description": "Verifiable observation supporting a finding.",
+      "foundational": false,
+      "file": "Evidence.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Evidence.schema.json"
+    },
+    {
+      "id": "Artifact",
+      "group": "domain",
+      "title": "Artifact",
+      "description": "Captured bytes with custody metadata.",
+      "foundational": false,
+      "file": "Artifact.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Artifact.schema.json"
+    },
+    {
+      "id": "BlobRef",
+      "group": "domain",
+      "title": "Blob reference",
+      "description": "Pointer to stored bytes.",
+      "foundational": false,
+      "file": "BlobRef.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/BlobRef.schema.json"
+    },
+    {
+      "id": "AuditRecord",
+      "group": "audit",
+      "title": "Audit record",
+      "description": "Immutable, hash-chained record of a security-relevant action.",
+      "foundational": false,
+      "file": "AuditRecord.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/AuditRecord.schema.json"
+    },
+    {
+      "id": "MetricSample",
+      "group": "audit",
+      "title": "Metric sample",
+      "description": "A single telemetry measurement.",
+      "foundational": false,
+      "file": "MetricSample.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/MetricSample.schema.json"
+    },
+    {
+      "id": "Span",
+      "group": "audit",
+      "title": "Trace span",
+      "description": "A unit of work in a distributed trace.",
+      "foundational": false,
+      "file": "Span.schema.json",
+      "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Span.schema.json"
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EngagementScope.schema.json",
+  "title": "Engagement scope",
+  "description": "Authoritative definition of what may be tested and how.",
+  "x-contract": {
+    "id": "EngagementScope",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "engagementId": {
+      "type": "string",
+      "pattern": "^eng_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Engagement identifier (`eng_<ulid|uuid>`)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    },
+    "client": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "rules": {
+      "minItems": 1,
+      "maxItems": 1000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "effect": {
+            "type": "string",
+            "enum": [
+              "include",
+              "exclude"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "host",
+              "ip-range",
+              "domain",
+              "url",
+              "web-application",
+              "api",
+              "mobile-application",
+              "cloud-account",
+              "cloud-resource",
+              "repository",
+              "container-image",
+              "binary",
+              "network-segment",
+              "wireless-network",
+              "identity",
+              "physical-site",
+              "social-engineering-target",
+              "other"
+            ]
+          },
+          "pattern": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "ports": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                },
+                "to": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                }
+              },
+              "required": [
+                "from",
+                "to"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "protocols": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "tcp",
+                "udp",
+                "icmp",
+                "sctp",
+                "any"
+              ]
+            }
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 8000,
+            "description": "Human-readable description (markdown allowed)"
+          }
+        },
+        "required": [
+          "effect",
+          "pattern"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "targets": {
+      "maxItems": 10000,
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/TargetAsset.schema.json"
+      }
+    },
+    "rulesOfEngagement": {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/RulesOfEngagement.schema.json"
+    },
+    "startsAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "endsAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "tags": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:\\/-]*$",
+        "description": "Free-form tag"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "engagementId",
+    "name",
+    "rules",
+    "rulesOfEngagement"
+  ],
+  "additionalProperties": false
+}

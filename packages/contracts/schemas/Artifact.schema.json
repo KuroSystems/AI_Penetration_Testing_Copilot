@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Artifact.schema.json",
+  "title": "Artifact",
+  "description": "Byte-level output captured during an engagement, with custody metadata.",
+  "x-contract": {
+    "id": "Artifact",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^art_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Artifact identifier (`art_<ulid|uuid>`)"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "tool-output",
+        "http-transcript",
+        "network-capture",
+        "screenshot",
+        "log",
+        "file",
+        "source-snippet",
+        "command-transcript",
+        "model-transcript",
+        "report",
+        "diff",
+        "other"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^ses_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Session identifier (`ses_<ulid|uuid>`)"
+    },
+    "targetId": {
+      "type": "string",
+      "pattern": "^tgt_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Target asset identifier (`tgt_<ulid|uuid>`)"
+    },
+    "producedBy": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "producedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "createdBy": {
+      "type": "string",
+      "pattern": "^act_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Actor identifier (`act_<ulid|uuid>`)"
+    },
+    "content": {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/BlobRef.schema.json"
+    },
+    "sensitivity": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted",
+        "secret"
+      ],
+      "description": "Handling classification; drives redaction and egress policy"
+    },
+    "redactions": {
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointer": {
+            "type": "string",
+            "pattern": "^(\\/(([^/~])|(~[01]))*)*$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "mask",
+              "hash",
+              "drop",
+              "tokenize"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 8000,
+            "description": "Human-readable description (markdown allowed)"
+          }
+        },
+        "required": [
+          "pointer",
+          "mode"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "integrityDigest": {
+      "type": "string",
+      "pattern": "^(sha256|sha512|blake3):[a-f0-9]{32,128}$",
+      "description": "Algorithm-prefixed content digest, e.g. \"sha256:<hex>\""
+    },
+    "retainUntil": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "tags": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:\\/-]*$",
+        "description": "Free-form tag"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "name",
+    "producedAt",
+    "content"
+  ],
+  "additionalProperties": false
+}

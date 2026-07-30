@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "stream",
+  "id": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B2D4",
+  "name": "model.completion.create",
+  "source": "model-gateway",
+  "destination": "orchestration",
+  "createdAt": "2026-07-30T09:15:04.250Z",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5",
+  "inReplyTo": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1P3",
+  "sequence": 7,
+  "final": false,
+  "payload": {
+    "type": "text-delta",
+    "delta": "Four hosts, "
+  }
+}

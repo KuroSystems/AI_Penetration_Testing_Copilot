@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "0.1.0",
+  "name": "aiptc.recon-nmap",
+  "version": "0.3.1",
+  "displayName": "Nmap recon",
+  "description": "Wraps nmap for host discovery and service enumeration, constrained to in-scope targets.",
+  "contractsRange": "^0.1.0",
+  "hostRange": ">=0.1.0 <1.0.0",
+  "author": "AIPTC core",
+  "license": "MIT",
+  "homepage": "https://example.com/aiptc/plugins/recon-nmap",
+  "repository": "https://github.com/example/aiptc-recon-nmap",
+  "category": "recon",
+  "keywords": [
+    "nmap",
+    "recon",
+    "network"
+  ],
+  "runtime": {
+    "kind": "child-process",
+    "entry": "dist/main.js",
+    "runtimeVersion": ">=20.10.0",
+    "command": "node",
+    "args": [
+      "dist/main.js",
+      "--stdio"
+    ],
+    "transport": "stdio",
+    "restart": "on-failure",
+    "healthCheckIntervalMs": 30000
+  },
+  "contributes": {
+    "tools": [
+      {
+        "name": "nmap.scan",
+        "title": "Nmap scan",
+        "description": "Runs an nmap scan against an in-scope target and returns parsed results.",
+        "inputSchema": {
+          "type": "object",
+          "required": [
+            "target"
+          ],
+          "properties": {
+            "target": {
+              "type": "string",
+              "description": "Hostname, IP or CIDR"
+            },
+            "ports": {
+              "type": "string",
+              "description": "Nmap port spec, e.g. \"1-1000\""
+            },
+            "profile": {
+              "type": "string",
+              "enum": [
+                "discovery",
+                "top-ports",
+                "service-version"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "hosts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "readOnly": false,
+        "idempotent": true,
+        "activityClasses": [
+          "active-scan"
+        ],
+        "requiresApproval": false,
+        "maxInputSensitivity": "internal",
+        "timeoutMs": 900000,
+        "costHint": 3,
+        "examples": [
+          {
+            "description": "Top ports sweep",
+            "arguments": {
+              "target": "203.0.113.10",
+              "profile": "top-ports"
+            }
+          }
+        ]
+      }
+    ],
+    "promptModules": [
+      "recon.nmap-result-summary"
+    ],
+    "eventSubscriptions": [
+      "session.session.state-changed"
+    ]
+  },
+  "permissions": {
+    "network": {
+      "mode": "scope-targets",
+      "allowProtocols": [
+        "tcp",
+        "udp"
+      ]
+    },
+    "filesystem": {
+      "mode": "workspace",
+      "writePaths": [
+        "artifacts/nmap"
+      ]
+    },
+    "process": {
+      "mode": "allowlist",
+      "allowBinaries": [
+        "nmap"
+      ]
+    },
+    "environment": [
+      "NMAP_PRIVILEGED"
+    ],
+    "model": {
+      "allowed": false
+    },
+    "storage": {
+      "read": [
+        "target"
+      ],
+      "write": [
+        "artifact"
+      ],
+      "privateState": true
+    },
+    "events": {
+      "subscribe": [
+        "session.*"
+      ]
+    },
+    "engineCalls": [
+      "policy.scope.check"
+    ],
+    "maxSensitivity": "confidential"
+  },
+  "limits": {
+    "maxMemoryMb": 512,
+    "maxCpuPercent": 50,
+    "maxInvocationMs": 900000,
+    "maxConcurrentInvocations": 2,
+    "maxOutputBytes": 10485760
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "nmapPath": {
+        "type": "string",
+        "default": "nmap"
+      },
+      "defaultProfile": {
+        "type": "string",
+        "enum": [
+          "discovery",
+          "top-ports",
+          "service-version"
+        ],
+        "default": "top-ports"
+      }
+    },
+    "additionalProperties": false
+  },
+  "defaultConfig": {
+    "nmapPath": "nmap",
+    "defaultProfile": "top-ports"
+  },
+  "activationEvents": [
+    "onTool:nmap.scan",
+    "onPhase:reconnaissance"
+  ],
+  "systemRequirements": [
+    {
+      "binary": "nmap",
+      "versionRange": ">=7.90.0"
+    }
+  ],
+  "integrity": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  "signature": {
+    "algorithm": "ed25519",
+    "publicKeyId": "aiptc-core-2026",
+    "value": "MEUCIQDf5o2m1p0k3h9t7Yb1w2Q3r4S5t6U7v8W9x0Y1z2A3bAIgQm",
+    "signedAt": "2026-07-01T00:00:00.000Z"
+  },
+  "trust": "first-party",
+  "safety": {
+    "activityClasses": [
+      "active-scan",
+      "passive-recon"
+    ],
+    "advisoryOnly": false,
+    "requiresApprovalOnActivate": false,
+    "destructiveOperations": []
+  }
+}

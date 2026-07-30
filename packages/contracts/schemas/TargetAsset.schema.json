@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/TargetAsset.schema.json",
+  "title": "Target asset",
+  "description": "A single asset that may be tested, subject to scope rules.",
+  "x-contract": {
+    "id": "TargetAsset",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^tgt_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Target asset identifier (`tgt_<ulid|uuid>`)"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "host",
+        "ip-range",
+        "domain",
+        "url",
+        "web-application",
+        "api",
+        "mobile-application",
+        "cloud-account",
+        "cloud-resource",
+        "repository",
+        "container-image",
+        "binary",
+        "network-segment",
+        "wireless-network",
+        "identity",
+        "physical-site",
+        "social-engineering-target",
+        "other"
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "description": "Canonical string form of the asset"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    },
+    "hostnames": {
+      "maxItems": 256,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 253,
+        "pattern": "^(\\*\\.)?([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z]{2,63}\\.?$",
+        "description": "DNS hostname, optionally wildcarded"
+      }
+    },
+    "ipAddresses": {
+      "maxItems": 1024,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "ipv4",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$"
+          },
+          {
+            "type": "string",
+            "format": "ipv6",
+            "pattern": "^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$"
+          }
+        ],
+        "description": "IPv4 or IPv6 address"
+      }
+    },
+    "cidrs": {
+      "maxItems": 256,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "cidrv4",
+            "pattern": "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\/([0-9]|[1-2][0-9]|3[0-2])$"
+          },
+          {
+            "type": "string",
+            "format": "cidrv6",
+            "pattern": "^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$"
+          }
+        ],
+        "description": "IPv4 or IPv6 CIDR block"
+      }
+    },
+    "urls": {
+      "maxItems": 256,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 2048,
+        "format": "uri",
+        "description": "Absolute URI"
+      }
+    },
+    "ports": {
+      "maxItems": 128,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "to": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "protocols": {
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "tcp",
+          "udp",
+          "icmp",
+          "sctp",
+          "any"
+        ]
+      }
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "production",
+        "staging",
+        "development",
+        "test",
+        "lab",
+        "unknown"
+      ]
+    },
+    "criticality": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "dataSensitivity": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted",
+        "secret"
+      ],
+      "description": "Handling classification; drives redaction and egress policy"
+    },
+    "owner": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "tags": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:\\/-]*$",
+        "description": "Free-form tag"
+      }
+    },
+    "attributes": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "identifier"
+  ],
+  "additionalProperties": false
+}

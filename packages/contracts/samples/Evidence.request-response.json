@@ -1,0 +1,21 @@
+{
+  "id": "evd_01J9Z8Q2X4T5V6W7Y8Z9A0B1J9",
+  "kind": "request-response",
+  "summary": "Reflected parameter rendered without encoding",
+  "detail": "The `q` parameter is echoed into the HTML body unescaped.",
+  "collectedAt": "2026-07-30T09:15:00.000Z",
+  "collectedBy": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "targetId": "tgt_01J9Z8Q2X4T5V6W7Y8Z9A0B1G7",
+  "artifactIds": [
+    "art_01J9Z8Q2X4T5V6W7Y8Z9A0B1K0"
+  ],
+  "reproduction": {
+    "tool": "curl",
+    "command": "curl -s 'https://shop.example.com/search?q=%3Cb%3Etest%3C%2Fb%3E'",
+    "request": "GET /search?q=<b>test</b> HTTP/1.1",
+    "response": "HTTP/1.1 200 OK … <div class=\"results\">You searched for <b>test</b></div>"
+  },
+  "confidence": 0.9,
+  "humanVerified": false
+}
