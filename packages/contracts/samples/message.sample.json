@@ -1,0 +1,12 @@
+{
+  "id": "msg-123",
+  "type": "event",
+  "source": "recon-engine",
+  "topic": "discovery.new-host",
+  "payload": {
+    "ip": "192.168.1.1",
+    "hostname": "gateway.local"
+  },
+  "timestamp": "2023-10-27T10:01:00Z",
+  "correlationId": "corr-456"
+}

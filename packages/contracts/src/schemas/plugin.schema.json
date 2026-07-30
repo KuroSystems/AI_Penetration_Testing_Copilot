@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-pentest.com/schemas/plugin.schema.json",
+  "title": "Plugin Manifest",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["recon", "exploitation", "reporting", "utility"]
+    },
+    "entryPoint": { "type": "string" },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "configSchema": { "type": "object" },
+    "capabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["id", "name", "version", "description", "type", "entryPoint", "capabilities"]
+}

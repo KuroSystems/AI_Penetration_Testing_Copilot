@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-pentest.com/schemas/message.schema.json",
+  "title": "Message Envelope",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["event", "command", "response"]
+    },
+    "source": { "type": "string" },
+    "target": { "type": "string" },
+    "topic": { "type": "string" },
+    "payload": { "type": "object" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "correlationId": { "type": "string" },
+    "priority": { "type": "string", "enum": ["low", "normal", "high"] },
+    "ttl": { "type": "integer" },
+    "metadata": { "type": "object" }
+  },
+  "required": ["id", "type", "source", "topic", "payload", "timestamp"]
+}

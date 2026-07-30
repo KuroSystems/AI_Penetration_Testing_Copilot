@@ -1,0 +1,12 @@
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Initial Pentest",
+  "target": "example.com",
+  "status": "active",
+  "createdAt": "2023-10-27T10:00:00Z",
+  "updatedAt": "2023-10-27T10:05:00Z",
+  "metadata": {
+    "scope": ["*.example.com"],
+    "notes": "Testing for SQLi"
+  }
+}
