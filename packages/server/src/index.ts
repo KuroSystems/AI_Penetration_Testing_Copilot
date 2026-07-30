@@ -3,9 +3,21 @@ import cors from 'cors';
 import { OllamaProvider } from './providers/ollama';
 import { MockModelProvider } from './providers/mock';
 import { ModelProvider } from '@ai-pentest/contracts';
+import { PromptRegistry } from './registry/prompt-registry';
+import { PromptLoader } from './registry/prompt-loader';
+import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Registry setup
+const promptRegistry = new PromptRegistry(path.join(__dirname, 'registry', 'prompts'));
+const promptLoader = new PromptLoader(promptRegistry);
+
+// Load prompts on startup
+promptRegistry.load().then(() => {
+  console.log('Prompt Registry loaded.');
+});
 
 let modelProvider: ModelProvider;
 
@@ -42,10 +54,18 @@ app.get('/models', async (req: Request, res: Response) => {
 
 // Generate text
 app.post('/generate', async (req: Request, res: Response) => {
-  const { prompt, model, stream } = req.body;
+  const { prompt, model, stream, tags, variables } = req.body;
   
-  if (!prompt) {
-    return res.status(400).json({ error: 'Prompt is required' });
+  let finalPrompt = prompt;
+
+  // If tags are provided, use the prompt loader to assemble the system prompt
+  if (tags && Array.isArray(tags)) {
+    const assembledPrompt = promptLoader.assemble(tags, variables || {});
+    finalPrompt = assembledPrompt + (prompt ? '\n\n' + prompt : '');
+  }
+  
+  if (!finalPrompt) {
+    return res.status(400).json({ error: 'Prompt or tags are required' });
   }
 
   try {
@@ -54,19 +74,29 @@ app.post('/generate', async (req: Request, res: Response) => {
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
-      const stream = modelProvider.streamText(prompt, { modelName: model });
+      const stream = modelProvider.streamText(finalPrompt, { modelName: model });
       for await (const chunk of stream) {
         res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
       }
       res.write('data: [DONE]\n\n');
       res.end();
     } else {
-      const result = await modelProvider.generateText(prompt, { modelName: model });
+      const result = await modelProvider.generateText(finalPrompt, { modelName: model });
       res.json(result);
     }
   } catch (error: any) {
     res.status(500).json({ error: 'Generation failed', details: error.message });
   }
+});
+
+// Prompt Registry Endpoints
+app.get('/prompts', (req: Request, res: Response) => {
+  res.json(promptRegistry.listAll());
+});
+
+app.post('/prompts/reload', async (req: Request, res: Response) => {
+  await promptRegistry.load();
+  res.json({ message: 'Registry reloaded' });
 });
 
 app.listen(port, () => {

@@ -1,0 +1,11 @@
+{
+  "id": "conversation-style",
+  "name": "Professional Style",
+  "version": "1.0.0",
+  "description": "Sets a professional and technical tone for responses",
+  "template": "Always provide technical, concise, and accurate information. Use Markdown for formatting code blocks, logs, and commands. When providing exploitation steps, ensure they are structured and clear.",
+  "inputVariables": [],
+  "tags": ["core", "style"],
+  "author": "KuroSystems",
+  "category": "style"
+}

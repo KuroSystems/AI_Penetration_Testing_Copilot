@@ -1,0 +1,8 @@
+{
+  "id": "invalid-prompt",
+  "name": "Invalid Prompt",
+  "version": "1.0.0",
+  "description": "This prompt is missing the template field",
+  "inputVariables": [],
+  "tags": ["test"]
+}

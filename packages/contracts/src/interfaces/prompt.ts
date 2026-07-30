@@ -9,6 +9,7 @@ export interface PromptModule {
   tags: string[];
   author?: string;
   category?: string;
+  changelog?: string;
   metadata?: Record<string, any>;
 }
 
