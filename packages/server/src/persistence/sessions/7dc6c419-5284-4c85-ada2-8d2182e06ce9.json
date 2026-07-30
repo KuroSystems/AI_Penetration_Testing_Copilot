@@ -1,0 +1,77 @@
+{
+  "name": "Confidence Test",
+  "target": "unknown-target.local",
+  "status": "active",
+  "metadata": {},
+  "state": {
+    "currentPhase": "recon",
+    "knownFacts": [
+      "Target IP is 192.168.1.50",
+      "Port 445 is open",
+      "Running SMBv1"
+    ],
+    "pinnedFacts": [],
+    "openQuestions": [
+      "What are the open ports?",
+      "What services are running?"
+    ],
+    "actionHistory": [
+      {
+        "action": "orchestrator_decision",
+        "result": {
+          "currentPhase": "recon",
+          "missingInfo": [
+            "open ports"
+          ],
+          "recommendedAction": "Clarification Required",
+          "rationale": "We need to identify open services on the target.",
+          "confidence": 0.3,
+          "needsClarification": false,
+          "questions": "Mock response to: \"\n      You are the AI Pentest Copilot. Your confidence in the next action is low.\n      \n      Current Pentest State:\n      - Target: unknown-target.local\n      - Phase: recon\n      - Known Facts: None\n      - Rationale for uncertainty: We need to identify open services on the target.\n      \n      Task:\n      Generate a clear, technical, and targeted set of questions for the user (the pentester) \n      to provide the missing information needed to proceed confidently. \n      Keep it professional and concise.\n      \n      Questions:\n    \" using default-model"
+        },
+        "timestamp": "2026-07-30T13:46:35.047Z"
+      },
+      {
+        "action": "orchestrator_decision",
+        "result": {
+          "currentPhase": "recon",
+          "missingInfo": [
+            "open ports"
+          ],
+          "recommendedAction": "Run nmap scan",
+          "rationale": "We need to identify open services on the target.",
+          "confidence": 0.6399999999999999,
+          "needsClarification": false
+        },
+        "timestamp": "2026-07-30T13:46:35.062Z"
+      }
+    ],
+    "chatHistory": [
+      {
+        "role": "user",
+        "content": "What should I do?",
+        "timestamp": "2026-07-30T13:46:35.032Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Mock response to: \"\n      You are the AI Pentest Copilot. Your confidence in the next action is low.\n      \n      Current Pentest State:\n      - Target: unknown-target.local\n      - Phase: recon\n      - Known Facts: None\n      - Rationale for uncertainty: We need to identify open services on the target.\n      \n      Task:\n      Generate a clear, technical, and targeted set of questions for the user (the pentester) \n      to provide the missing information needed to proceed confidently. \n      Keep it professional and concise.\n      \n      Questions:\n    \" using default-model",
+        "timestamp": "2026-07-30T13:46:35.047Z"
+      },
+      {
+        "role": "user",
+        "content": "Next step now?",
+        "timestamp": "2026-07-30T13:46:35.061Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Phase: recon\nRecommended Action: Run nmap scan\nRationale: We need to identify open services on the target.",
+        "timestamp": "2026-07-30T13:46:35.061Z"
+      }
+    ],
+    "confidenceSnapshot": 0.6399999999999999
+  },
+  "version": 1,
+  "id": "7dc6c419-5284-4c85-ada2-8d2182e06ce9",
+  "createdAt": "2026-07-30T13:46:35.019Z",
+  "updatedAt": "2026-07-30T13:46:35.062Z"
+}

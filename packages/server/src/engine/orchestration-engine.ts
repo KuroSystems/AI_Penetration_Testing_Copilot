@@ -10,6 +10,8 @@ import { SessionStateEngine } from './session-state-engine';
 import { TokenBudgetCompressionEngine } from './compression-engine';
 import { MemoryEngine } from './memory-engine';
 import { ReasoningEngine } from './reasoning-engine';
+import { ConfidenceScoringEngine } from './confidence-engine';
+import { ClarificationEngine } from './clarification-engine';
 
 export interface PipelineStep {
   category?: string;
@@ -33,6 +35,8 @@ export class OrchestrationEngine {
   private compressionEngine: TokenBudgetCompressionEngine;
   private memoryEngine: MemoryEngine;
   private reasoningEngine: ReasoningEngine;
+  private confidenceEngine: ConfidenceScoringEngine;
+  private clarificationEngine: ClarificationEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -52,6 +56,8 @@ export class OrchestrationEngine {
     this.memoryEngine = memoryEngine;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
+    this.confidenceEngine = new ConfidenceScoringEngine();
+    this.clarificationEngine = new ClarificationEngine(modelProvider);
     
     this.config = {
       pipeline: [
@@ -116,16 +122,41 @@ export class OrchestrationEngine {
     // 6. Call Reasoning Engine
     const decision = await this.reasoningEngine.think(combinedPrompt);
 
-    // 7. Update Session with Assistant Response (Reasoning Result)
-    const assistantContent = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}`;
-    await this.sessionEngine.addChatMessage(sessionId, 'assistant', assistantContent);
-    await this.sessionEngine.recordAction(sessionId, 'reasoning_decision', decision);
+    // 7. Confidence & Clarification Logic (Phase 7)
+    const confidenceResult = this.confidenceEngine.calculate(updatedSession);
+    
+    let finalResult: any = decision;
+    let assistantMessage = '';
 
-    // 8. Trigger Background Memory Refresh (Async)
+    if (decision.needsClarification || !confidenceResult.isAdequate) {
+      console.log(`Low confidence (${confidenceResult.score.toFixed(2)}) or explicit clarification request.`);
+      const questions = await this.clarificationEngine.generateQuestions(updatedSession, decision.rationale);
+      
+      assistantMessage = questions;
+      finalResult = {
+        ...decision,
+        recommendedAction: 'Clarification Required',
+        questions,
+        confidence: confidenceResult.score
+      };
+    } else {
+      assistantMessage = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}`;
+      finalResult = {
+        ...decision,
+        confidence: confidenceResult.score
+      };
+    }
+
+    // 8. Update Session with Assistant Response
+    await this.sessionEngine.addChatMessage(sessionId, 'assistant', assistantMessage);
+    await this.sessionEngine.recordAction(sessionId, 'orchestrator_decision', finalResult);
+    await this.sessionEngine.updateState(sessionId, { confidenceSnapshot: confidenceResult.score });
+
+    // 9. Trigger Background Memory Refresh (Async)
     this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => 
       console.error('Background memory refresh failed:', err)
     );
 
-    return decision;
+    return finalResult;
   }
 }
