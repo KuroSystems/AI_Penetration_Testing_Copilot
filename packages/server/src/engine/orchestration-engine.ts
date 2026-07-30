@@ -9,6 +9,7 @@ import { PromptLoader } from '../registry/prompt-loader';
 import { SessionStateEngine } from './session-state-engine';
 import { TokenBudgetCompressionEngine } from './compression-engine';
 import { MemoryEngine } from './memory-engine';
+import { ReasoningEngine } from './reasoning-engine';
 
 export interface PipelineStep {
   category?: string;
@@ -31,6 +32,7 @@ export class OrchestrationEngine {
   private sessionEngine: SessionStateEngine;
   private compressionEngine: TokenBudgetCompressionEngine;
   private memoryEngine: MemoryEngine;
+  private reasoningEngine: ReasoningEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -49,6 +51,7 @@ export class OrchestrationEngine {
     this.compressionEngine = compressionEngine;
     this.memoryEngine = memoryEngine;
     this.modelProvider = modelProvider;
+    this.reasoningEngine = new ReasoningEngine(modelProvider);
     
     this.config = {
       pipeline: [
@@ -64,7 +67,7 @@ export class OrchestrationEngine {
     };
   }
 
-  async process(sessionId: string, userPrompt?: string, modelConfig?: Partial<ModelConfig>): Promise<string> {
+  async process(sessionId: string, userPrompt?: string, modelConfig?: Partial<ModelConfig>): Promise<any> {
     const session = await this.sessionEngine.getSession(sessionId);
     if (!session) throw new Error(`Session ${sessionId} not found`);
 
@@ -82,8 +85,9 @@ export class OrchestrationEngine {
       .sort((a, b) => b.priority - a.priority)
       .flatMap(step => step.tags || []);
     
-    // Add phase-specific tag based on session state
+    // Add phase-specific and reasoning tags
     tags.push(updatedSession.state.currentPhase);
+    tags.push('reasoning');
     
     const variables = {
       target: updatedSession.target,
@@ -100,8 +104,6 @@ export class OrchestrationEngine {
     const finalSystemPrompt = `${baseSystemPrompt}\n\n${context.systemPrompt}`;
     const messages = [...context.messages];
     
-    // For simple generateText, we combine everything.
-    // In a real chat API, we'd pass system prompt and message array separately.
     const combinedPrompt = `${finalSystemPrompt}\n\n` + 
       messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
@@ -111,17 +113,19 @@ export class OrchestrationEngine {
     console.log('Messages in Context:', messages.length);
     console.log('---------------------------');
 
-    // 6. Call Model
-    const response = await this.modelProvider.generateText(combinedPrompt, modelConfig);
+    // 6. Call Reasoning Engine
+    const decision = await this.reasoningEngine.think(combinedPrompt);
 
-    // 7. Update Session with Assistant Response
-    await this.sessionEngine.addChatMessage(sessionId, 'assistant', response.text);
+    // 7. Update Session with Assistant Response (Reasoning Result)
+    const assistantContent = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}`;
+    await this.sessionEngine.addChatMessage(sessionId, 'assistant', assistantContent);
+    await this.sessionEngine.recordAction(sessionId, 'reasoning_decision', decision);
 
     // 8. Trigger Background Memory Refresh (Async)
     this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => 
       console.error('Background memory refresh failed:', err)
     );
 
-    return response.text;
+    return decision;
   }
 }

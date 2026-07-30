@@ -8,6 +8,20 @@ export class MockModelProvider implements ModelProvider {
   }
 
   async generateText(prompt: string, config?: Partial<ModelConfig>): Promise<ModelResponse> {
+    if (prompt.includes('Reasoning Engine')) {
+      return {
+        text: JSON.stringify({
+          currentPhase: 'recon',
+          missingInfo: ['open ports'],
+          recommendedAction: 'Run nmap scan',
+          rationale: 'We need to identify open services on the target.',
+          confidence: 0.9,
+          needsClarification: false
+        }),
+        usage: { promptTokens: 50, completionTokens: 50, totalTokens: 100 },
+        raw: { mock: true }
+      };
+    }
     return {
       text: `Mock response to: "${prompt}" using ${config?.modelName || 'default-model'}`,
       usage: {
