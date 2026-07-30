@@ -6,6 +6,7 @@ export * from './interfaces/model';
 export * from './interfaces/memory';
 export * from './interfaces/reasoning';
 export * from './interfaces/workflow';
+export * from './interfaces/safety';
 
 // We can also export JSON schemas as objects if needed
 import * as sessionSchema from './schemas/session.schema.json';
@@ -14,6 +15,7 @@ import * as messageSchema from './schemas/message.schema.json';
 import * as pluginSchema from './schemas/plugin.schema.json';
 import * as decisionSchema from './schemas/decision.schema.json';
 import * as workflowSchema from './schemas/workflow.schema.json';
+import * as safetySchema from './schemas/safety.schema.json';
 
 export const Schemas = {
   Session: sessionSchema,
@@ -21,5 +23,6 @@ export const Schemas = {
   Message: messageSchema,
   Plugin: pluginSchema,
   Decision: decisionSchema,
-  Workflow: workflowSchema
+  Workflow: workflowSchema,
+  Safety: safetySchema
 };

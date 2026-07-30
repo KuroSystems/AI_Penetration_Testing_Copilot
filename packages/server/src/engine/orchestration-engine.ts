@@ -13,6 +13,8 @@ import { ReasoningEngine } from './reasoning-engine';
 import { ConfidenceScoringEngine } from './confidence-engine';
 import { ClarificationEngine } from './clarification-engine';
 import { WorkflowEngine } from './workflow-engine';
+import { RulesEngine } from './rules-engine';
+import { RuleAction } from '@ai-pentest/contracts';
 
 export interface PipelineStep {
   category?: string;
@@ -39,6 +41,7 @@ export class OrchestrationEngine {
   private confidenceEngine: ConfidenceScoringEngine;
   private clarificationEngine: ClarificationEngine;
   private workflowEngine: WorkflowEngine;
+  private rulesEngine: RulesEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -49,6 +52,7 @@ export class OrchestrationEngine {
     compressionEngine: TokenBudgetCompressionEngine,
     memoryEngine: MemoryEngine,
     workflowEngine: WorkflowEngine,
+    rulesEngine: RulesEngine,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -58,6 +62,7 @@ export class OrchestrationEngine {
     this.compressionEngine = compressionEngine;
     this.memoryEngine = memoryEngine;
     this.workflowEngine = workflowEngine;
+    this.rulesEngine = rulesEngine;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -158,11 +163,33 @@ export class OrchestrationEngine {
         confidence: confidenceResult.score
       };
     } else {
-      assistantMessage = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}`;
-      finalResult = {
-        ...decision,
-        confidence: confidenceResult.score
-      };
+      // 9. Safety Layer (Phase 9)
+      const safetyReport = this.rulesEngine.evaluate(decision, updatedSession);
+      
+      if (safetyReport.action === RuleAction.BLOCK) {
+        console.warn(`Action BLOCKED by safety rules: ${safetyReport.message}`);
+        assistantMessage = `I cannot recommend the next step because it violates safety rules: ${safetyReport.message}`;
+        finalResult = {
+          ...decision,
+          recommendedAction: 'BLOCKED',
+          safetyReport
+        };
+      } else if (safetyReport.action === RuleAction.FLAG) {
+        console.log(`Action FLAGED for confirmation: ${safetyReport.message}`);
+        assistantMessage = `WARNING: ${safetyReport.message}\n\nPlease confirm if you want to proceed with: ${decision.recommendedAction}`;
+        finalResult = {
+          ...decision,
+          recommendedAction: 'NEEDS_CONFIRMATION',
+          safetyReport
+        };
+      } else {
+        assistantMessage = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}`;
+        finalResult = {
+          ...decision,
+          confidence: confidenceResult.score,
+          safetyReport
+        };
+      }
     }
 
     // 8. Update Session with Assistant Response

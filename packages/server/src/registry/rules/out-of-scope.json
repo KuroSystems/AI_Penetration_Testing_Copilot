@@ -1,0 +1,9 @@
+{
+  "id": "out-of-scope-check",
+  "name": "Out of Scope Guard",
+  "description": "Blocks actions targeting IPs outside the defined range.",
+  "category": "scope",
+  "severity": "high",
+  "action": "block",
+  "message": "The proposed action targets an entity that appears to be out of the defined engagement scope."
+}

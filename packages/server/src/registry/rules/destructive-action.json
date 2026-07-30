@@ -1,0 +1,9 @@
+{
+  "id": "destructive-action-check",
+  "name": "Destructive Action Guard",
+  "description": "Flags any action that sounds destructive for user confirmation.",
+  "pattern": "(delete|rm |drop |format|wipe|reset|exploit|attack)",
+  "severity": "high",
+  "action": "flag",
+  "message": "This action is potentially destructive and requires explicit confirmation."
+}

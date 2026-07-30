@@ -11,6 +11,7 @@ import { TokenBudgetCompressionEngine } from './engine/compression-engine';
 import { MemoryEngine } from './engine/memory-engine';
 import { OrchestrationEngine } from './engine/orchestration-engine';
 import { WorkflowEngine } from './engine/workflow-engine';
+import { RulesEngine } from './engine/rules-engine';
 import path from 'path';
 
 const app = express();
@@ -21,6 +22,13 @@ const workflowRegistryPath = path.join(__dirname, 'registry', 'workflows');
 const workflowEngine = new WorkflowEngine(workflowRegistryPath);
 workflowEngine.load().then(() => {
   console.log('Workflow Registry loaded.');
+});
+
+// Safety Rules setup
+const rulesRegistryPath = path.join(__dirname, 'registry', 'rules');
+const rulesEngine = new RulesEngine(rulesRegistryPath);
+rulesEngine.load().then(() => {
+  console.log('Safety Rules Registry loaded.');
 });
 
 // Persistence & Engine setup
@@ -55,6 +63,7 @@ const orchestrator = new OrchestrationEngine(
   compressionEngine,
   memoryEngine,
   workflowEngine,
+  rulesEngine,
   modelProvider
 );
 
@@ -89,8 +98,8 @@ app.post('/generate', async (req: Request, res: Response) => {
   try {
     if (sessionId) {
       // Use the Orchestration Engine if sessionId is provided
-      const responseText = await orchestrator.process(sessionId, prompt, { modelName: model });
-      res.json({ text: responseText });
+      const result = await orchestrator.process(sessionId, prompt, { modelName: model });
+      res.json(result);
     } else {
       // Legacy / stateless path
       let finalPrompt = prompt;
@@ -196,6 +205,16 @@ app.get('/workflows', (req: Request, res: Response) => {
 app.post('/workflows/reload', async (req: Request, res: Response) => {
   await workflowEngine.load();
   res.json({ message: 'Workflows reloaded' });
+});
+
+// Safety Rules Endpoints
+app.get('/rules', (req: Request, res: Response) => {
+  res.json(rulesEngine.listAll());
+});
+
+app.post('/rules/reload', async (req: Request, res: Response) => {
+  await rulesEngine.load();
+  res.json({ message: 'Safety rules reloaded' });
 });
 
 app.listen(port, () => {
