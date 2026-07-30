@@ -14,6 +14,10 @@ export interface ChatMessage {
 
 export interface SessionState {
   currentPhase: string;
+  stageHistory: Array<{
+    stage: string;
+    enteredAt: Date;
+  }>;
   knownFacts: string[];
   pinnedFacts: string[]; // Facts that should never be compressed
   openQuestions: string[];

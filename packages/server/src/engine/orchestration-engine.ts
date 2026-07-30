@@ -12,6 +12,7 @@ import { MemoryEngine } from './memory-engine';
 import { ReasoningEngine } from './reasoning-engine';
 import { ConfidenceScoringEngine } from './confidence-engine';
 import { ClarificationEngine } from './clarification-engine';
+import { WorkflowEngine } from './workflow-engine';
 
 export interface PipelineStep {
   category?: string;
@@ -37,6 +38,7 @@ export class OrchestrationEngine {
   private reasoningEngine: ReasoningEngine;
   private confidenceEngine: ConfidenceScoringEngine;
   private clarificationEngine: ClarificationEngine;
+  private workflowEngine: WorkflowEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -46,6 +48,7 @@ export class OrchestrationEngine {
     sessionEngine: SessionStateEngine,
     compressionEngine: TokenBudgetCompressionEngine,
     memoryEngine: MemoryEngine,
+    workflowEngine: WorkflowEngine,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -54,6 +57,7 @@ export class OrchestrationEngine {
     this.sessionEngine = sessionEngine;
     this.compressionEngine = compressionEngine;
     this.memoryEngine = memoryEngine;
+    this.workflowEngine = workflowEngine;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -122,7 +126,21 @@ export class OrchestrationEngine {
     // 6. Call Reasoning Engine
     const decision = await this.reasoningEngine.think(combinedPrompt);
 
-    // 7. Confidence & Clarification Logic (Phase 7)
+    // 7. Workflow Stage Transition (Phase 8)
+    if (decision.currentPhase && decision.currentPhase !== updatedSession.state.currentPhase) {
+      try {
+        const workflowId = updatedSession.metadata.workflowId || 'standard-pentest';
+        await this.sessionEngine.transitionStage(sessionId, decision.currentPhase, (from, to) => {
+          return this.workflowEngine.validateTransition(workflowId, from, to);
+        });
+        console.log(`Transitioned session ${sessionId} to phase: ${decision.currentPhase}`);
+      } catch (err: any) {
+        console.warn(`Attempted invalid transition: ${err.message}`);
+        // We continue, but the session state remains in the old phase
+      }
+    }
+
+    // 8. Confidence & Clarification Logic (Phase 7)
     const confidenceResult = this.confidenceEngine.calculate(updatedSession);
     
     let finalResult: any = decision;

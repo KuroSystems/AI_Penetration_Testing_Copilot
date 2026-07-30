@@ -17,6 +17,7 @@ async function test() {
     metadata: {},
     state: {
       currentPhase: 'exploitation',
+      stageHistory: [{ stage: 'exploitation', enteredAt: new Date() }],
       knownFacts: ['Fact 1: SSH is open', 'Fact 2: Found weak credentials'],
       pinnedFacts: ['CRITICAL: Root access obtained on 10.0.0.5'],
       openQuestions: [],

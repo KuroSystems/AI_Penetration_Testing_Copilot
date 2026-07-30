@@ -10,10 +10,18 @@ import { SessionStateEngine } from './engine/session-state-engine';
 import { TokenBudgetCompressionEngine } from './engine/compression-engine';
 import { MemoryEngine } from './engine/memory-engine';
 import { OrchestrationEngine } from './engine/orchestration-engine';
+import { WorkflowEngine } from './engine/workflow-engine';
 import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Workflow setup
+const workflowRegistryPath = path.join(__dirname, 'registry', 'workflows');
+const workflowEngine = new WorkflowEngine(workflowRegistryPath);
+workflowEngine.load().then(() => {
+  console.log('Workflow Registry loaded.');
+});
 
 // Persistence & Engine setup
 const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
@@ -46,6 +54,7 @@ const orchestrator = new OrchestrationEngine(
   sessionEngine,
   compressionEngine,
   memoryEngine,
+  workflowEngine,
   modelProvider
 );
 
@@ -177,6 +186,16 @@ app.post('/sessions/:id/memory/refresh', async (req: Request, res: Response) => 
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Workflow Endpoints
+app.get('/workflows', (req: Request, res: Response) => {
+  res.json(workflowEngine.listAll());
+});
+
+app.post('/workflows/reload', async (req: Request, res: Response) => {
+  await workflowEngine.load();
+  res.json({ message: 'Workflows reloaded' });
 });
 
 app.listen(port, () => {

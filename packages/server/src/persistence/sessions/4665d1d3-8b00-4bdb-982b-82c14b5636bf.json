@@ -1,0 +1,58 @@
+{
+  "name": "Workflow Test",
+  "target": "example.com",
+  "status": "active",
+  "metadata": {
+    "workflowId": "standard-pentest"
+  },
+  "state": {
+    "currentPhase": "recon",
+    "stageHistory": [
+      {
+        "stage": "scoping",
+        "enteredAt": "2026-07-30T13:50:47.214Z"
+      },
+      {
+        "stage": "recon",
+        "enteredAt": "2026-07-30T13:50:47.240Z"
+      }
+    ],
+    "knownFacts": [],
+    "pinnedFacts": [],
+    "openQuestions": [
+      "What are the objectives?"
+    ],
+    "actionHistory": [
+      {
+        "action": "orchestrator_decision",
+        "result": {
+          "currentPhase": "recon",
+          "missingInfo": [],
+          "recommendedAction": "Clarification Required",
+          "rationale": "Transitioning to recon phase as requested or based on state.",
+          "confidence": 0.3,
+          "needsClarification": false,
+          "questions": "Mock response to: \"\n      You are the AI Pentest Copilot. Your confidence in the next action is low.\n      \n      Current Pentest State:\n      - Target: example.com\n      - Phase: scoping\n      - Known Facts: None\n      - Rationale for uncertainty: Transitioning to recon phase as requested or based on state.\n      \n      Task:\n      Generate a clear, technical, and targeted set of questions for the user (the pentester) \n      to provide the missing information needed to proceed confidently. \n      Keep it professional and concise.\n      \n      Questions:\n    \" using default-model"
+        },
+        "timestamp": "2026-07-30T13:50:47.242Z"
+      }
+    ],
+    "chatHistory": [
+      {
+        "role": "user",
+        "content": "Transition to recon.",
+        "timestamp": "2026-07-30T13:50:47.221Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Mock response to: \"\n      You are the AI Pentest Copilot. Your confidence in the next action is low.\n      \n      Current Pentest State:\n      - Target: example.com\n      - Phase: scoping\n      - Known Facts: None\n      - Rationale for uncertainty: Transitioning to recon phase as requested or based on state.\n      \n      Task:\n      Generate a clear, technical, and targeted set of questions for the user (the pentester) \n      to provide the missing information needed to proceed confidently. \n      Keep it professional and concise.\n      \n      Questions:\n    \" using default-model",
+        "timestamp": "2026-07-30T13:50:47.242Z"
+      }
+    ],
+    "confidenceSnapshot": 0.3
+  },
+  "version": 1,
+  "id": "4665d1d3-8b00-4bdb-982b-82c14b5636bf",
+  "createdAt": "2026-07-30T13:50:47.215Z",
+  "updatedAt": "2026-07-30T13:50:47.242Z"
+}

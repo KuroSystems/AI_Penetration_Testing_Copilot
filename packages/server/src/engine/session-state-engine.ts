@@ -7,12 +7,13 @@ export class SessionStateEngine {
     this.repository = repository;
   }
 
-  async createSession(target: string, name?: string): Promise<Session> {
+  async createSession(target: string, name?: string, workflowId: string = 'standard-pentest'): Promise<Session> {
     const initialState: SessionState = {
-      currentPhase: 'recon',
+      currentPhase: 'scoping',
+      stageHistory: [{ stage: 'scoping', enteredAt: new Date() }],
       knownFacts: [],
       pinnedFacts: [],
-      openQuestions: ['What are the open ports?', 'What services are running?'],
+      openQuestions: ['What are the objectives?'],
       actionHistory: [],
       chatHistory: [],
       confidenceSnapshot: 0.1
@@ -22,9 +23,34 @@ export class SessionStateEngine {
       name: name || `Session ${new Date().toISOString()}`,
       target,
       status: SessionStatus.ACTIVE,
-      metadata: {},
+      metadata: { workflowId },
       state: initialState,
       version: 1
+    });
+  }
+
+  async transitionStage(id: string, nextStage: string, validator: (from: string, to: string) => boolean): Promise<Session> {
+    const session = await this.repository.getById(id);
+    if (!session) throw new Error(`Session ${id} not found`);
+
+    const currentStage = session.state.currentPhase;
+    if (!validator(currentStage, nextStage)) {
+      throw new Error(`Invalid stage transition from ${currentStage} to ${nextStage}`);
+    }
+
+    if (currentStage === nextStage) return session;
+
+    const stageHistory = [
+      ...session.state.stageHistory,
+      { stage: nextStage, enteredAt: new Date() }
+    ];
+
+    return this.repository.update(id, {
+      state: { 
+        ...session.state, 
+        currentPhase: nextStage,
+        stageHistory 
+      }
     });
   }
 

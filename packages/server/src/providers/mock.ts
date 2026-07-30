@@ -9,12 +9,15 @@ export class MockModelProvider implements ModelProvider {
 
   async generateText(prompt: string, config?: Partial<ModelConfig>): Promise<ModelResponse> {
     if (prompt.includes('Reasoning Engine')) {
+      // Return 'recon' if the prompt suggests transition to recon
+      const targetPhase = prompt.includes('Transition to recon') ? 'recon' : 'scoping';
+      
       return {
         text: JSON.stringify({
-          currentPhase: 'recon',
-          missingInfo: ['open ports'],
-          recommendedAction: 'Run nmap scan',
-          rationale: 'We need to identify open services on the target.',
+          currentPhase: targetPhase,
+          missingInfo: [],
+          recommendedAction: `Proceed with ${targetPhase}`,
+          rationale: `Transitioning to ${targetPhase} phase as requested or based on state.`,
           confidence: 0.9,
           needsClarification: false
         }),
