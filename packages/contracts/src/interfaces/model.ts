@@ -21,5 +21,8 @@ export interface ModelResponse {
 export interface ModelProvider {
   id: string;
   generateText(prompt: string, config?: Partial<ModelConfig>): Promise<ModelResponse>;
-  // We can add streaming or embeddings later if needed
+  streamText?(prompt: string, config?: Partial<ModelConfig>): AsyncIterable<string>;
+  listModels?(): Promise<string[]>;
+  pullModel?(modelName: string): Promise<void>;
+  getEmbeddings?(text: string, model?: string): Promise<number[]>;
 }

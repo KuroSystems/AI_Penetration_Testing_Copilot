@@ -1,0 +1,11 @@
+{
+  "name": "ai-pentest-copilot",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build:contracts": "npm run build --workspace=packages/contracts",
+    "start:server": "npm run start --workspace=packages/server"
+  }
+}
