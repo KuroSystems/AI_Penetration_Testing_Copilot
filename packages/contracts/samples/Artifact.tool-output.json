@@ -1,0 +1,35 @@
+{
+  "id": "art_01J9Z8Q2X4T5V6W7Y8Z9A0B1K0",
+  "kind": "tool-output",
+  "name": "nmap-top1000-203.0.113.10.txt",
+  "description": "Raw nmap output for the storefront host.",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "targetId": "tgt_01J9Z8Q2X4T5V6W7Y8Z9A0B1G7",
+  "producedBy": "aiptc.recon-nmap",
+  "producedAt": "2026-07-30T09:15:00.000Z",
+  "createdBy": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+  "content": {
+    "uri": "blob://sha256/b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    "mediaType": "text/plain",
+    "sizeBytes": 4096,
+    "digest": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    "encoding": "identity"
+  },
+  "sensitivity": "confidential",
+  "redactions": [
+    {
+      "pointer": "/env/API_TOKEN",
+      "mode": "drop",
+      "reason": "Credential material"
+    }
+  ],
+  "integrityDigest": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  "retainUntil": "2027-07-30T00:00:00.000Z",
+  "tags": [
+    "recon"
+  ],
+  "metadata": {
+    "tool": "nmap",
+    "version": "7.95"
+  }
+}

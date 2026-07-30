@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/EngineMessage.schema.json",
+  "title": "Engine message",
+  "description": "Transport-independent envelope for every engine-to-engine interaction.",
+  "x-contract": {
+    "id": "EngineMessage",
+    "group": "messaging",
+    "contractsVersion": "0.1.0",
+    "foundational": true
+  },
+  "oneOf": [
+    {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/RequestEnvelope.schema.json"
+    },
+    {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/ResponseEnvelope.schema.json"
+    },
+    {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/EventEnvelope.schema.json"
+    },
+    {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/StreamChunkEnvelope.schema.json"
+    }
+  ]
+}

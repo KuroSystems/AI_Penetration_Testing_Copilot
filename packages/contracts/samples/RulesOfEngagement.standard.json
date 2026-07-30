@@ -1,0 +1,30 @@
+{
+  "allowedActivities": [
+    "passive-recon",
+    "active-scan",
+    "vulnerability-scan",
+    "authenticated-scan"
+  ],
+  "forbiddenActivities": [
+    "denial-of-service",
+    "social-engineering",
+    "physical"
+  ],
+  "testingWindows": [
+    {
+      "startsAt": "2026-07-30T00:00:00.000Z",
+      "endsAt": "2026-08-06T00:00:00.000Z",
+      "note": "Agreed window"
+    }
+  ],
+  "maxRequestsPerSecond": 20,
+  "maxConcurrentTasks": 4,
+  "requiresApprovalFor": [
+    "exploitation",
+    "post-exploitation"
+  ],
+  "allowRemoteModelEgress": false,
+  "dataHandling": "confidential",
+  "emergencyContact": "soc@example.com / +1-555-0100",
+  "notes": "Stop immediately on any sign of production impact."
+}

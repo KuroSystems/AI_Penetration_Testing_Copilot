@@ -1,0 +1,15 @@
+{
+  "moduleKey": "analysis.reflected-input-triage",
+  "versionRange": "^1.2.0",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "variables": {
+    "targetUrl": "https://shop.example.com/search",
+    "parameter": "q",
+    "responseExcerpt": "<div class=\"results\">You searched for <b>test</b></div>"
+  },
+  "compose": [
+    "guardrail.scope-discipline@^1.0.0"
+  ],
+  "strictTokenBudget": true,
+  "maxPromptTokens": 6000
+}

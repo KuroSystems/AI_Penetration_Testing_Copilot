@@ -1,0 +1,368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/Finding.schema.json",
+  "title": "Finding",
+  "description": "A security weakness observed during an engagement, with evidence and scoring.",
+  "x-contract": {
+    "id": "Finding",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^fnd_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Finding identifier (`fnd_<ulid|uuid>`)"
+    },
+    "fingerprint": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short human-readable label"
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    },
+    "detail": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "proposed",
+        "confirmed",
+        "false-positive",
+        "duplicate",
+        "accepted-risk",
+        "remediated",
+        "withdrawn"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Value in the closed interval [0, 1]"
+    },
+    "cvss": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "enum": [
+            "2.0",
+            "3.0",
+            "3.1",
+            "4.0"
+          ]
+        },
+        "vector": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "baseScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "temporalScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "environmentalScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "version",
+        "vector",
+        "baseScore"
+      ],
+      "additionalProperties": false
+    },
+    "classification": {
+      "type": "object",
+      "properties": {
+        "cwe": {
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^CWE-\\d{1,5}$"
+          }
+        },
+        "cve": {
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^CVE-\\d{4}-\\d{4,7}$"
+          }
+        },
+        "owaspTop10": {
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "owaspAsvs": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "mitreAttack": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^T\\d{4}(\\.\\d{3})?$"
+          }
+        },
+        "capec": {
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^CAPEC-\\d{1,5}$"
+          }
+        },
+        "compliance": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^ses_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Session identifier (`ses_<ulid|uuid>`)"
+    },
+    "targetIds": {
+      "maxItems": 256,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^tgt_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+        "description": "Target asset identifier (`tgt_<ulid|uuid>`)"
+      }
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "parameter": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "method": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "filePath": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "component": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceIds": {
+      "maxItems": 256,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^evd_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+        "description": "Evidence identifier (`evd_<ulid|uuid>`)"
+      }
+    },
+    "evidence": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/Evidence.schema.json"
+      }
+    },
+    "impact": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    },
+    "likelihood": {
+      "type": "string",
+      "enum": [
+        "info",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "remediation": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "maxLength": 8000,
+          "description": "Human-readable description (markdown allowed)"
+        },
+        "effort": {
+          "type": "string",
+          "enum": [
+            "trivial",
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "references": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Absolute URI"
+          }
+        }
+      },
+      "required": [
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "discoveredVia": {
+      "type": "string",
+      "enum": [
+        "passive-recon",
+        "active-scan",
+        "vulnerability-scan",
+        "authenticated-scan",
+        "exploitation",
+        "post-exploitation",
+        "lateral-movement",
+        "privilege-escalation",
+        "persistence",
+        "data-exfiltration-simulation",
+        "denial-of-service",
+        "social-engineering",
+        "physical",
+        "wireless",
+        "source-code-review",
+        "configuration-review"
+      ]
+    },
+    "discoveredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "reportedBy": {
+      "type": "string",
+      "pattern": "^act_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Actor identifier (`act_<ulid|uuid>`)"
+    },
+    "reviewedBy": {
+      "type": "string",
+      "pattern": "^act_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Actor identifier (`act_<ulid|uuid>`)"
+    },
+    "reviewedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "duplicateOf": {
+      "type": "string",
+      "pattern": "^fnd_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Finding identifier (`fnd_<ulid|uuid>`)"
+    },
+    "tags": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:\\/-]*$",
+        "description": "Free-form tag"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "summary",
+    "status",
+    "severity",
+    "discoveredAt"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,11 @@
+{
+  "id": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+  "kind": "human",
+  "displayName": "A. Tester",
+  "roles": [
+    "lead-tester"
+  ],
+  "subject": "local:atester",
+  "email": "atester@example.com",
+  "authenticatedAt": "2026-07-30T09:00:00.000Z"
+}

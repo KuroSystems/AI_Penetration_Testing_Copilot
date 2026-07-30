@@ -1,0 +1,11 @@
+{
+  "name": "session.session.state-changed",
+  "occurredAt": "2026-07-30T09:15:00.000Z",
+  "subject": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "payload": {
+    "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+    "from": "authorized",
+    "to": "running",
+    "changedAt": "2026-07-30T09:15:00.000Z"
+  }
+}

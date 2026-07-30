@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/DomainEvent.schema.json",
+  "title": "Domain event",
+  "description": "Catalogued event name plus payload.",
+  "x-contract": {
+    "id": "DomainEvent",
+    "group": "messaging",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": [
+        "session.session.created",
+        "session.session.state-changed",
+        "session.session.phase-changed",
+        "session.budget.warning",
+        "session.budget.exceeded",
+        "session.session.ended",
+        "session.step.planned",
+        "session.step.started",
+        "session.step.completed",
+        "session.step.failed",
+        "approval.request.created",
+        "approval.request.decided",
+        "approval.request.expired",
+        "finding.finding.created",
+        "finding.finding.updated",
+        "finding.finding.status-changed",
+        "evidence.artifact.stored",
+        "model.call.started",
+        "model.call.completed",
+        "model.call.failed",
+        "tool.call.started",
+        "tool.call.completed",
+        "plugin.plugin.loaded",
+        "plugin.plugin.unloaded",
+        "plugin.plugin.failed",
+        "policy.decision.evaluated",
+        "policy.decision.denied",
+        "policy.scope.violation-blocked",
+        "audit.record.appended",
+        "telemetry.metric.recorded",
+        "telemetry.span.ended",
+        "storage.entity.persisted",
+        "storage.entity.deleted"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "subject": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "payload": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "name",
+    "occurredAt",
+    "payload"
+  ],
+  "additionalProperties": false
+}

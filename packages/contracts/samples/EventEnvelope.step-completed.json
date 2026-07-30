@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "event",
+  "id": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B2C3",
+  "name": "session.step.completed",
+  "topic": "session.step.completed",
+  "source": "orchestration",
+  "createdAt": "2026-07-30T09:15:04.250Z",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "subject": "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D3",
+  "sequence": 12,
+  "actor": {
+    "id": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+    "kind": "engine",
+    "displayName": "orchestration"
+  },
+  "deliveryMode": "at-least-once",
+  "payloadSchema": {
+    "id": "StepEventPayload",
+    "version": "0.1.0"
+  },
+  "payload": {
+    "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+    "stepId": "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D3",
+    "sequence": 12,
+    "title": "Fuzz search parameter for reflected input",
+    "status": "succeeded",
+    "activityClass": "vulnerability-scan",
+    "durationMs": 4250
+  }
+}

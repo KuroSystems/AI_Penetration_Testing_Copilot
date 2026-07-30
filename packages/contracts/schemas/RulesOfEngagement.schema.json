@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/RulesOfEngagement.schema.json",
+  "title": "Rules of engagement",
+  "description": "Operational constraints agreed with the client.",
+  "x-contract": {
+    "id": "RulesOfEngagement",
+    "group": "domain",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "allowedActivities": {
+      "minItems": 1,
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "passive-recon",
+          "active-scan",
+          "vulnerability-scan",
+          "authenticated-scan",
+          "exploitation",
+          "post-exploitation",
+          "lateral-movement",
+          "privilege-escalation",
+          "persistence",
+          "data-exfiltration-simulation",
+          "denial-of-service",
+          "social-engineering",
+          "physical",
+          "wireless",
+          "source-code-review",
+          "configuration-review"
+        ]
+      }
+    },
+    "forbiddenActivities": {
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "passive-recon",
+          "active-scan",
+          "vulnerability-scan",
+          "authenticated-scan",
+          "exploitation",
+          "post-exploitation",
+          "lateral-movement",
+          "privilege-escalation",
+          "persistence",
+          "data-exfiltration-simulation",
+          "denial-of-service",
+          "social-engineering",
+          "physical",
+          "wireless",
+          "source-code-review",
+          "configuration-review"
+        ]
+      }
+    },
+    "testingWindows": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 8000,
+            "description": "Human-readable description (markdown allowed)"
+          }
+        },
+        "required": [
+          "startsAt",
+          "endsAt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "maxRequestsPerSecond": {
+      "type": "number",
+      "minimum": 0
+    },
+    "maxConcurrentTasks": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "requiresApprovalFor": {
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "passive-recon",
+          "active-scan",
+          "vulnerability-scan",
+          "authenticated-scan",
+          "exploitation",
+          "post-exploitation",
+          "lateral-movement",
+          "privilege-escalation",
+          "persistence",
+          "data-exfiltration-simulation",
+          "denial-of-service",
+          "social-engineering",
+          "physical",
+          "wireless",
+          "source-code-review",
+          "configuration-review"
+        ]
+      }
+    },
+    "allowRemoteModelEgress": {
+      "type": "boolean"
+    },
+    "dataHandling": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted",
+        "secret"
+      ],
+      "description": "Handling classification; drives redaction and egress policy"
+    },
+    "emergencyContact": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 8000,
+      "description": "Human-readable description (markdown allowed)"
+    }
+  },
+  "required": [
+    "allowedActivities"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "response",
+  "id": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B2B2",
+  "name": "tool.invoke",
+  "source": "plugin-host",
+  "destination": "orchestration",
+  "createdAt": "2026-07-30T09:15:04.250Z",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5",
+  "inReplyTo": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1P3",
+  "status": "error",
+  "error": {
+    "code": "out_of_scope",
+    "message": "Target 198.51.100.4 is not covered by any include rule.",
+    "source": "policy",
+    "retryable": false,
+    "occurredAt": "2026-07-30T09:15:04.250Z",
+    "remediation": "Add the host to the engagement scope or pick another target.",
+    "data": {
+      "target": "198.51.100.4"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "aud_01J9Z8Q2X4T5V6W7Y8Z9A0B1Z2",
+  "sequence": 4211,
+  "recordedAt": "2026-07-30T09:15:04.250Z",
+  "occurredAt": "2026-07-30T09:15:04.250Z",
+  "action": "session.step.completed",
+  "category": "session",
+  "outcome": "success",
+  "actor": {
+    "id": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1X0",
+    "kind": "engine",
+    "displayName": "orchestration"
+  },
+  "target": "session:ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "correlationId": "cor_01J9Z8Q2X4T5V6W7Y8Z9A0B1R5",
+  "causationId": "msg_01J9Z8Q2X4T5V6W7Y8Z9A0B1P3",
+  "activityClass": "vulnerability-scan",
+  "summary": "Step 12 completed: reflected input confirmed",
+  "data": {
+    "stepId": "stp_01J9Z8Q2X4T5V6W7Y8Z9A0B1D3",
+    "durationMs": 4250
+  },
+  "redacted": true,
+  "sensitivity": "confidential",
+  "durationMs": 4250,
+  "producerVersion": "0.1.0",
+  "previousHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "hash": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/PromptRenderRequest.schema.json",
+  "title": "Prompt render request",
+  "description": "Request to compose and render prompt modules.",
+  "x-contract": {
+    "id": "PromptRenderRequest",
+    "group": "prompt",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "moduleId": {
+      "type": "string",
+      "pattern": "^pmd_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Prompt module identifier (`pmd_<ulid|uuid>`)"
+    },
+    "moduleKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$",
+      "description": "Lowercase machine name, e.g. \"recon.port-scan\""
+    },
+    "versionRange": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Semver range expression, e.g. \"^1.2.0\""
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^ses_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Session identifier (`ses_<ulid|uuid>`)"
+    },
+    "variables": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      }
+    },
+    "compose": {
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 160
+      }
+    },
+    "strictTokenBudget": {
+      "type": "boolean"
+    },
+    "maxPromptTokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    }
+  },
+  "additionalProperties": false
+}

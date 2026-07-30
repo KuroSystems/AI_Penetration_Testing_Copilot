@@ -1,0 +1,32 @@
+{
+  "callId": "mcl_01J9Z8Q2X4T5V6W7Y8Z9A0B1V8",
+  "model": "ollama/llama3.1:70b",
+  "providerResponseId": "ollama-7f3c",
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "1. Enumerate the 8443 admin panel…"
+      }
+    ]
+  },
+  "text": "1. Enumerate the 8443 admin panel…",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokens": 1842,
+    "outputTokens": 311,
+    "totalTokens": 2153,
+    "cachedInputTokens": 1024
+  },
+  "estimatedCost": {
+    "currency": "USD",
+    "minorUnits": 0
+  },
+  "createdAt": "2026-07-30T09:15:04.250Z",
+  "latencyMs": 4250,
+  "firstTokenMs": 380,
+  "promptDigest": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  "cached": false,
+  "warnings": []
+}

@@ -1,0 +1,15 @@
+{
+  "model": "ollama/nomic-embed-text",
+  "embeddings": [
+    [
+      0.0121,
+      -0.3312,
+      0.7781
+    ]
+  ],
+  "usage": {
+    "inputTokens": 11,
+    "totalTokens": 11
+  },
+  "createdAt": "2026-07-30T09:15:04.250Z"
+}

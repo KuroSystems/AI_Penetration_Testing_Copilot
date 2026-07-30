@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json",
+  "title": "Shared contract definitions",
+  "description": "Definitions referenced by more than one contract schema.",
+  "x-contract": {
+    "id": "__shared",
+    "group": "shared",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "$defs": {
+    "JsonValue": {
+      "title": "JSON value",
+      "description": "Any JSON-serialisable value.",
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/schema0"
+    },
+    "schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/schema0"
+          }
+        }
+      ]
+    },
+    "ContractError": {
+      "title": "Contract error",
+      "description": "Canonical error shape returned at every engine, plugin, model and storage boundary.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "invalid_request",
+            "schema_validation_failed",
+            "unsupported_version",
+            "not_found",
+            "already_exists",
+            "conflict",
+            "precondition_failed",
+            "unsupported_operation",
+            "unauthorized",
+            "forbidden",
+            "out_of_scope",
+            "policy_violation",
+            "approval_required",
+            "safety_refusal",
+            "rate_limited",
+            "quota_exceeded",
+            "budget_exceeded",
+            "timeout",
+            "cancelled",
+            "unavailable",
+            "dependency_failed",
+            "transport_error",
+            "model_context_length_exceeded",
+            "model_content_filtered",
+            "model_output_invalid",
+            "storage_conflict",
+            "storage_unavailable",
+            "transaction_aborted",
+            "plugin_load_failed",
+            "plugin_incompatible",
+            "plugin_crashed",
+            "sandbox_violation",
+            "internal_error",
+            "unknown"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Short human-readable label"
+        },
+        "vendorCode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "retryAfterMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "description": "Duration in milliseconds"
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "reference": {
+          "type": "string",
+          "pattern": "^[a-z]{3,6}_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+          "description": "Any prefixed entity identifier"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+        },
+        "details": {
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pointer": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "expected": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "received": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "pointer",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "data": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+          }
+        },
+        "remediation": {
+          "type": "string",
+          "maxLength": 8000,
+          "description": "Human-readable description (markdown allowed)"
+        },
+        "cause": {
+          "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/ContractError"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "ModelMessage": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "system",
+            "developer",
+            "user",
+            "assistant",
+            "tool"
+          ]
+        },
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "text"
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "cacheable": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "image"
+                      },
+                      "uri": {
+                        "type": "string",
+                        "maxLength": 2048
+                      },
+                      "base64": {
+                        "type": "string"
+                      },
+                      "mediaType": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}(;\\s?.+)?$",
+                        "description": "IANA media type, e.g. \"application/json\""
+                      },
+                      "detail": {
+                        "type": "string",
+                        "enum": [
+                          "low",
+                          "high",
+                          "auto"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "tool-call"
+                      },
+                      "toolCallId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^tcl_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+                            "description": "Tool call identifier (`tcl_<ulid|uuid>`)"
+                          },
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          }
+                        ]
+                      },
+                      "toolName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "arguments": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+                        }
+                      },
+                      "rawArguments": {
+                        "type": "string",
+                        "maxLength": 200000
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "toolCallId",
+                      "toolName",
+                      "arguments"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "tool-result"
+                      },
+                      "toolCallId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^tcl_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+                            "description": "Tool call identifier (`tcl_<ulid|uuid>`)"
+                          },
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          }
+                        ]
+                      },
+                      "toolName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "result": {
+                        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+                      },
+                      "isError": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "toolCallId",
+                      "result"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "reasoning"
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "signature": {
+                        "type": "string",
+                        "maxLength": 4096
+                      },
+                      "redacted": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "sensitivity": {
+          "type": "string",
+          "enum": [
+            "public",
+            "internal",
+            "confidential",
+            "restricted",
+            "secret"
+          ],
+          "description": "Handling classification; drives redaction and egress policy"
+        }
+      },
+      "required": [
+        "role",
+        "content"
+      ],
+      "additionalProperties": false,
+      "title": "Model message"
+    }
+  }
+}

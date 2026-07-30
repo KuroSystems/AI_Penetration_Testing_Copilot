@@ -1,0 +1,14 @@
+{
+  "id": "auth_01J9Z8Q2X4T5V6W7Y8Z9A0B1F6",
+  "engagementId": "eng_01J9Z8Q2X4T5V6W7Y8Z9A0B1E5",
+  "method": "signed-document",
+  "grantedBy": "J. Client",
+  "grantedByRole": "CISO, Example Corp",
+  "attestedBy": "act_01J9Z8Q2X4T5V6W7Y8Z9A0B1W9",
+  "grantedAt": "2026-07-25T10:00:00.000Z",
+  "validFrom": "2026-07-30T00:00:00.000Z",
+  "validUntil": "2026-08-06T00:00:00.000Z",
+  "documentRef": "art_01J9Z8Q2X4T5V6W7Y8Z9A0B1K0",
+  "documentHash": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  "notes": "Counter-signed engagement letter, revision 2."
+}

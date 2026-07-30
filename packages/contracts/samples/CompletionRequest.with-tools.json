@@ -1,0 +1,103 @@
+{
+  "callId": "mcl_01J9Z8Q2X4T5V6W7Y8Z9A0B1V8",
+  "sessionId": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2",
+  "model": "ollama/llama3.1:70b",
+  "messages": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "You assist an authorised penetration test.",
+          "cacheable": true
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Given the nmap output below, list the three most promising follow-ups."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool-call",
+          "toolCallId": "tcl_01J9Z8Q2X4T5V6W7Y8Z9A0B1T7",
+          "toolName": "nmap.scan",
+          "arguments": {
+            "target": "203.0.113.10",
+            "profile": "service-version"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "content": [
+        {
+          "type": "tool-result",
+          "toolCallId": "tcl_01J9Z8Q2X4T5V6W7Y8Z9A0B1T7",
+          "toolName": "nmap.scan",
+          "result": {
+            "hosts": [
+              {
+                "ip": "203.0.113.10",
+                "ports": [
+                  443,
+                  8443
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "nmap.scan",
+      "description": "Run an nmap scan against an in-scope target.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "readOnly": false
+    }
+  ],
+  "toolChoice": "auto",
+  "responseFormat": {
+    "type": "json-schema",
+    "name": "followups",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array"
+        }
+      }
+    },
+    "strict": true
+  },
+  "temperature": 0.2,
+  "maxOutputTokens": 1024,
+  "stopSequences": [
+    "\n\n---"
+  ],
+  "seed": 1337,
+  "timeoutMs": 90000,
+  "idempotencyKey": "ses_01J9Z8Q2X4T5V6W7Y8Z9A0B1C2:step:12",
+  "sensitivity": "confidential",
+  "providerOptions": {
+    "num_ctx": 32768
+  },
+  "metadata": {
+    "phase": "vulnerability-analysis"
+  }
+}

@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.aiptc.dev/contracts/v0.1.0/CompletionResponse.schema.json",
+  "title": "Completion response",
+  "description": "Normalised provider response with usage, cost and provenance.",
+  "x-contract": {
+    "id": "CompletionResponse",
+    "group": "model",
+    "contractsVersion": "0.1.0",
+    "foundational": false
+  },
+  "type": "object",
+  "properties": {
+    "callId": {
+      "type": "string",
+      "pattern": "^mcl_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+      "description": "Model call identifier (`mcl_<ulid|uuid>`)"
+    },
+    "model": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "providerResponseId": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "message": {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/ModelMessage"
+    },
+    "text": {
+      "type": "string"
+    },
+    "toolCalls": {
+      "maxItems": 64,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "tool-call"
+          },
+          "toolCallId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^tcl_(?:[0-9A-HJKMNP-TV-Z]{26}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+                "description": "Tool call identifier (`tcl_<ulid|uuid>`)"
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              }
+            ]
+          },
+          "toolName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "arguments": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+            }
+          },
+          "rawArguments": {
+            "type": "string",
+            "maxLength": 200000
+          }
+        },
+        "required": [
+          "type",
+          "toolCallId",
+          "toolName",
+          "arguments"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "finishReason": {
+      "type": "string",
+      "enum": [
+        "stop",
+        "length",
+        "tool-calls",
+        "content-filter",
+        "cancelled",
+        "error",
+        "other"
+      ]
+    },
+    "usage": {
+      "type": "object",
+      "properties": {
+        "inputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "outputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "totalTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "reasoningTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "cachedInputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "additionalProperties": false
+    },
+    "estimatedCost": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO-4217 currency code"
+        },
+        "minorUnits": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "currency",
+        "minorUnits"
+      ],
+      "additionalProperties": false
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "RFC 3339 timestamp with explicit UTC offset, e.g. 2026-07-30T10:15:00.000Z"
+    },
+    "latencyMs": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647,
+      "description": "Duration in milliseconds"
+    },
+    "firstTokenMs": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647,
+      "description": "Duration in milliseconds"
+    },
+    "promptDigest": {
+      "type": "string",
+      "pattern": "^(sha256|sha512|blake3):[a-f0-9]{32,128}$",
+      "description": "Algorithm-prefixed content digest, e.g. \"sha256:<hex>\""
+    },
+    "cached": {
+      "type": "boolean"
+    },
+    "fallbackFrom": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "warnings": {
+      "maxItems": 16,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Short human-readable label"
+      }
+    },
+    "raw": {
+      "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9._:-]{0,62}[a-z0-9])?$"
+      },
+      "additionalProperties": {
+        "$ref": "https://schemas.aiptc.dev/contracts/v0.1.0/__shared.schema.json#/$defs/JsonValue"
+      },
+      "description": "Namespaced, non-contractual extension data. Unknown keys MUST be ignored."
+    }
+  },
+  "required": [
+    "callId",
+    "model",
+    "message",
+    "finishReason",
+    "createdAt"
+  ],
+  "additionalProperties": false
+}
