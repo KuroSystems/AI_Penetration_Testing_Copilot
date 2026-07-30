@@ -1,0 +1,11 @@
+{
+  "id": "recon-module",
+  "name": "Reconnaissance Module",
+  "version": "1.0.0",
+  "description": "Specific instructions for the recon phase",
+  "template": "Currently in RECONNAISSANCE phase. Focus on discovering subdomains, open ports, and service banners for {{target}}. Do not attempt exploitation yet.",
+  "inputVariables": ["target"],
+  "tags": ["recon"],
+  "author": "KuroSystems",
+  "category": "phase-specific"
+}

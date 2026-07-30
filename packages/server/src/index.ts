@@ -9,6 +9,7 @@ import { FileSessionRepository } from './persistence/file-session-repository';
 import { SessionStateEngine } from './engine/session-state-engine';
 import { TokenBudgetCompressionEngine } from './engine/compression-engine';
 import { MemoryEngine } from './engine/memory-engine';
+import { OrchestrationEngine } from './engine/orchestration-engine';
 import path from 'path';
 
 const app = express();
@@ -39,6 +40,15 @@ if (process.env.USE_MOCK === 'true') {
 
 const memoryEngine = new MemoryEngine(modelProvider, sessionEngine);
 
+const orchestrator = new OrchestrationEngine(
+  promptRegistry,
+  promptLoader,
+  sessionEngine,
+  compressionEngine,
+  memoryEngine,
+  modelProvider
+);
+
 app.use(cors());
 app.use(express.json());
 
@@ -67,83 +77,20 @@ app.get('/models', async (req: Request, res: Response) => {
 app.post('/generate', async (req: Request, res: Response) => {
   const { prompt, model, stream, tags, variables, sessionId } = req.body;
   
-  let finalPrompt = prompt;
-  let messages: Array<{ role: string, content: string }> = [];
-  let systemPrompt = '';
-
-  if (sessionId) {
-    const session = await sessionEngine.getSession(sessionId);
-    if (session) {
-      // Assemble system prompt from registry + tags
-      if (tags && Array.isArray(tags)) {
-        systemPrompt = promptLoader.assemble(tags, variables || {});
-      }
-      
-      // Use compression engine to get budget-compliant context
-      const context = await compressionEngine.compress(session, {
-        maxTokens: 4000,
-        reserveForResponse: 500,
-        shortTermHistoryLimit: 20
-      });
-      
-      // Combine registry-based system prompt with compressed state info
-      systemPrompt = systemPrompt + '\n\n' + context.systemPrompt;
-      messages = context.messages;
-      
-      // Add the current prompt as the latest user message if provided
-      if (prompt) {
-        messages.push({ role: 'user', content: prompt });
-        // Also save to session history
-        await sessionEngine.addChatMessage(sessionId, 'user', prompt);
-      }
-      
-      finalPrompt = systemPrompt; // In some models, system prompt is passed separately, but for generic 'generateText' we might need to handle it.
-      // For now, let's assume generateText takes a single prompt or we can adjust ModelProvider.
-    }
-  } else if (tags && Array.isArray(tags)) {
-    const assembledPrompt = promptLoader.assemble(tags, variables || {});
-    finalPrompt = assembledPrompt + (prompt ? '\n\n' + prompt : '');
-  }
-  
-  if (!finalPrompt && messages.length === 0) {
-    return res.status(400).json({ error: 'Prompt, tags, or sessionId are required' });
-  }
-
   try {
-    // If we have messages, we might need a ChatModelProvider interface. 
-    // For Phase 4 simplicity, we'll continue using generateText with a combined prompt if sessionId is used.
-    let combinedPrompt = finalPrompt;
-    if (messages.length > 0) {
-        combinedPrompt = finalPrompt + '\n\n' + messages.map(m => `${m.role}: ${m.content}`).join('\n');
-    }
-
-    if (stream && modelProvider.streamText) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      const stream = modelProvider.streamText(combinedPrompt, { modelName: model });
-      let fullResponse = '';
-      for await (const chunk of stream) {
-        res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
-        fullResponse += chunk;
-      }
-      
-      if (sessionId) {
-          await sessionEngine.addChatMessage(sessionId, 'assistant', fullResponse);
-          await memoryEngine.refreshLongTermMemory(sessionId);
-      }
-      
-      res.write('data: [DONE]\n\n');
-      res.end();
+    if (sessionId) {
+      // Use the Orchestration Engine if sessionId is provided
+      const responseText = await orchestrator.process(sessionId, prompt, { modelName: model });
+      res.json({ text: responseText });
     } else {
-      const result = await modelProvider.generateText(combinedPrompt, { modelName: model });
-      
-      if (sessionId) {
-          await sessionEngine.addChatMessage(sessionId, 'assistant', result.text);
-          await memoryEngine.refreshLongTermMemory(sessionId);
+      // Legacy / stateless path
+      let finalPrompt = prompt;
+      if (tags && Array.isArray(tags)) {
+        const assembledPrompt = promptLoader.assemble(tags, variables || {});
+        finalPrompt = assembledPrompt + (prompt ? '\n\n' + prompt : '');
       }
       
+      const result = await modelProvider.generateText(finalPrompt || '', { modelName: model });
       res.json(result);
     }
   } catch (error: any) {
