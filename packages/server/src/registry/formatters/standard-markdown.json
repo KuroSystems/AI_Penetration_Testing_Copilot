@@ -1,0 +1,6 @@
+{
+  "id": "standard-markdown",
+  "name": "Standard Markdown Formatter",
+  "template": "### Current Phase: {{currentPhase}}\n\n#### Reasoning\n{{rationale}}\n\n#### Recommended Action\n> **{{recommendedAction}}**\n\n{{#if missingInfo.length}}\n#### Missing Information\n{{#each missingInfo}}\n- {{this}}\n{{/each}}\n{{/if}}\n\n#### Confidence\n{{confidenceScore}}",
+  "version": "1.0.0"
+}

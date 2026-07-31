@@ -2,7 +2,10 @@ import {
   Session, 
   ModelProvider, 
   ContextPackage,
-  ModelConfig
+  ModelConfig,
+  ToolDefinition, 
+  GuiToolDefinition,
+  RuleAction
 } from '@ai-pentest/contracts';
 import { PromptRegistry } from '../registry/prompt-registry';
 import { PromptLoader } from '../registry/prompt-loader';
@@ -18,7 +21,7 @@ import { ToolRecommendationEngine } from './tool-recommendation-engine';
 import { CommandGenerationEngine } from './command-generation-engine';
 import { GuiNavigationEngine } from './gui-navigation-engine';
 import { ResponseValidator } from './response-validator';
-import { RuleAction, ToolDefinition, GuiToolDefinition } from '@ai-pentest/contracts';
+import { OutputFormatter } from './output-formatter';
 
 export interface PipelineStep {
   category?: string;
@@ -50,6 +53,7 @@ export class OrchestrationEngine {
   private commandGenerationEngine: CommandGenerationEngine;
   private guiNavigationEngine: GuiNavigationEngine;
   private responseValidator: ResponseValidator;
+  private outputFormatter: OutputFormatter;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -62,6 +66,7 @@ export class OrchestrationEngine {
     workflowEngine: WorkflowEngine,
     rulesEngine: RulesEngine,
     toolRecommendationEngine: ToolRecommendationEngine,
+    outputFormatter: OutputFormatter,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -76,6 +81,7 @@ export class OrchestrationEngine {
     this.commandGenerationEngine = new CommandGenerationEngine();
     this.guiNavigationEngine = new GuiNavigationEngine();
     this.responseValidator = new ResponseValidator();
+    this.outputFormatter = outputFormatter;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -95,7 +101,12 @@ export class OrchestrationEngine {
     };
   }
 
-  async process(sessionId: string, userPrompt?: string, modelConfig?: Partial<ModelConfig>): Promise<any> {
+  async process(
+    sessionId: string, 
+    userPrompt?: string, 
+    modelConfig?: Partial<ModelConfig>,
+    onChunk?: (chunk: string) => void
+  ): Promise<any> {
     const session = await this.sessionEngine.getSession(sessionId);
     if (!session) throw new Error(`Session ${sessionId} not found`);
 
@@ -120,7 +131,7 @@ export class OrchestrationEngine {
     };
 
     const baseSystemPrompt = this.promptLoader.assemble(tags, variables);
-    const context = await this.compressionEngine.compress(updatedSession, this.config.pipeline.length > 0 ? this.config.compression : { maxTokens: 4000, reserveForResponse: 500, shortTermHistoryLimit: 20 });
+    const context = await this.compressionEngine.compress(updatedSession, this.config.compression);
 
     const finalSystemPrompt = `${baseSystemPrompt}\n\n${context.systemPrompt}`;
     const messages = [...context.messages];
@@ -128,34 +139,23 @@ export class OrchestrationEngine {
     const combinedPrompt = `${finalSystemPrompt}\n\n` + 
       messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
-    // 6. Call Reasoning Engine with Retry & Validation (Phase 12)
     let decision: any;
     let validationResult: any;
 
     for (let attempt = 0; attempt < 2; attempt++) {
       decision = await this.reasoningEngine.think(combinedPrompt);
       validationResult = this.responseValidator.validate(decision, updatedSession);
-      
       if (validationResult.isValid) break;
-      
       console.warn(`Reasoning validation failed on attempt ${attempt + 1}: ${validationResult.errors.join(', ')}`);
-      // Optional: Adjust prompt for retry if we had a more advanced logic
     }
 
     if (!validationResult.isValid) {
-      console.error('Final decision validation failed. Falling back to clarification.');
       const questions = "I'm having trouble formulating the next step accurately. Could you provide more details about the target or previous findings?";
-      const fallbackResult = {
-        ...decision,
-        recommendedAction: 'Clarification Required',
-        questions,
-        validationErrors: validationResult.errors
-      };
+      if (onChunk) await this.streamString(questions, onChunk);
       await this.sessionEngine.addChatMessage(sessionId, 'assistant', questions);
-      return fallbackResult;
+      return { recommendedAction: 'Clarification Required', questions, validationErrors: validationResult.errors };
     }
 
-    // 7. Workflow Stage Transition (Phase 8)
     if (decision.currentPhase && decision.currentPhase !== updatedSession.state.currentPhase) {
       try {
         const workflowId = updatedSession.metadata.workflowId || 'standard-pentest';
@@ -167,23 +167,15 @@ export class OrchestrationEngine {
       }
     }
 
-    // 8. Confidence & Clarification Logic (Phase 7)
     const confidenceResult = this.confidenceEngine.calculate(updatedSession);
-    
     let finalResult: any = decision;
     let assistantMessage = '';
 
     if (decision.needsClarification || !confidenceResult.isAdequate) {
       const questions = await this.clarificationEngine.generateQuestions(updatedSession, decision.rationale);
       assistantMessage = questions;
-      finalResult = {
-        ...decision,
-        recommendedAction: 'Clarification Required',
-        questions,
-        confidence: confidenceResult.score
-      };
+      finalResult = { ...decision, recommendedAction: 'Clarification Required', questions, confidence: confidenceResult.score };
     } else {
-        // 10. Tool Recommendation & Command Generation (Phase 10 & 11)
         const recommendations = this.toolRecommendationEngine.recommend(decision, updatedSession);
         let toolInfo = '';
         let toolData: any = null;
@@ -217,7 +209,6 @@ export class OrchestrationEngine {
         }
 
       const safetyReport = this.rulesEngine.evaluate(decision, updatedSession);
-      
       if (safetyReport.action === RuleAction.BLOCK) {
         assistantMessage = `I cannot recommend the next step because it violates safety rules: ${safetyReport.message}`;
         finalResult = { ...decision, recommendedAction: 'BLOCKED', safetyReport };
@@ -225,9 +216,9 @@ export class OrchestrationEngine {
         assistantMessage = `WARNING: ${safetyReport.message}\n\nPlease confirm if you want to proceed with: ${decision.recommendedAction}${toolInfo}`;
         finalResult = { ...decision, recommendedAction: 'NEEDS_CONFIRMATION', safetyReport, toolRecommendation: toolData };
       } else {
-        assistantMessage = `Phase: ${decision.currentPhase}\nRecommended Action: ${decision.recommendedAction}\nRationale: ${decision.rationale}${toolInfo}`;
+        const formatted = this.outputFormatter.format({ ...decision, confidence: confidenceResult.score });
+        assistantMessage = `${formatted}${toolInfo}`;
         finalResult = { ...decision, confidence: confidenceResult.score, safetyReport, toolRecommendation: toolData };
-
         if (toolData && 'missingParameters' in toolData) {
             finalResult.recommendedAction = 'Clarification Required';
             finalResult.questions = `To run ${toolData.toolId}, please provide: ${toolData.missingParameters.map((p: any) => p.name).join(', ')}`;
@@ -235,14 +226,20 @@ export class OrchestrationEngine {
       }
     }
 
+    if (onChunk) await this.streamString(assistantMessage, onChunk);
     await this.sessionEngine.addChatMessage(sessionId, 'assistant', assistantMessage);
     await this.sessionEngine.recordAction(sessionId, 'orchestrator_decision', finalResult);
     await this.sessionEngine.updateState(sessionId, { confidenceSnapshot: confidenceResult.score });
-
-    this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => 
-      console.error('Background memory refresh failed:', err)
-    );
+    this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => console.error('Background memory refresh failed:', err));
 
     return finalResult;
+  }
+
+  private async streamString(text: string, onChunk: (chunk: string) => void): Promise<void> {
+    const words = text.split(' ');
+    for (const word of words) {
+        onChunk(word + ' ');
+        await new Promise(resolve => setTimeout(resolve, 30));
+    }
   }
 }

@@ -13,6 +13,7 @@ import { OrchestrationEngine } from './engine/orchestration-engine';
 import { WorkflowEngine } from './engine/workflow-engine';
 import { RulesEngine } from './engine/rules-engine';
 import { ToolRecommendationEngine } from './engine/tool-recommendation-engine';
+import { OutputFormatter } from './engine/output-formatter';
 import path from 'path';
 
 const app = express();
@@ -38,6 +39,13 @@ const guiToolRegistryPath = path.join(__dirname, 'registry', 'gui-tools');
 const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath, guiToolRegistryPath);
 toolRecommendationEngine.load().then(() => {
   console.log('Tool Registries loaded.');
+});
+
+// Formatter setup
+const formatterRegistryPath = path.join(__dirname, 'registry', 'formatters');
+const outputFormatter = new OutputFormatter(formatterRegistryPath);
+outputFormatter.load().then(() => {
+  console.log('Formatter Registry loaded.');
 });
 
 // Persistence & Engine setup
@@ -74,6 +82,7 @@ const orchestrator = new OrchestrationEngine(
   workflowEngine,
   rulesEngine,
   toolRecommendationEngine,
+  outputFormatter,
   modelProvider
 );
 
@@ -105,8 +114,22 @@ app.post('/generate', async (req: Request, res: Response) => {
   
   try {
     if (sessionId) {
-      const result = await orchestrator.process(sessionId, prompt, { modelName: model });
-      res.json(result);
+      if (stream) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        const result = await orchestrator.process(sessionId, prompt, { modelName: model }, (chunk) => {
+          res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+        });
+
+        res.write(`data: ${JSON.stringify({ finalResult: result })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        res.end();
+      } else {
+        const result = await orchestrator.process(sessionId, prompt, { modelName: model });
+        res.json(result);
+      }
     } else {
       let finalPrompt = prompt;
       if (tags && Array.isArray(tags)) {
