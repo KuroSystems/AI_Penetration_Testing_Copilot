@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-pentest.com/schemas/gui-tool-catalog.schema.json",
+  "title": "GUI Tool Catalog",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["recon", "exploitation", "analysis", "utility"]
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "stepsTemplate": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action": { "type": "string" },
+                "description": { "type": "string" },
+                "screenshotIdentifier": { "type": "string" }
+              },
+              "required": ["action", "description"]
+            }
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "required": { "type": "boolean" },
+                "defaultValue": { "type": "string" },
+                "source": {
+                  "type": "string",
+                  "enum": ["session_target", "session_fact", "user_input"]
+                },
+                "factName": { "type": "string" }
+              },
+              "required": ["name", "description", "required"]
+            }
+          }
+        },
+        "required": ["id", "name", "description", "category", "stepsTemplate", "parameters"]
+      }
+    }
+  },
+  "required": ["id", "name", "version", "tools"]
+}

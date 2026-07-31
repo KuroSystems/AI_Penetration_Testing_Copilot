@@ -18,6 +18,10 @@ import * as decisionSchema from './schemas/decision.schema.json';
 import * as workflowSchema from './schemas/workflow.schema.json';
 import * as safetySchema from './schemas/safety.schema.json';
 import * as toolSchema from './schemas/tool-catalog.schema.json';
+<<<<<<< Updated upstream
+=======
+import * as guiToolSchema from './schemas/gui-tool-catalog.schema.json';
+>>>>>>> Stashed changes
 
 export const Schemas = {
   Session: sessionSchema,
@@ -27,5 +31,10 @@ export const Schemas = {
   Decision: decisionSchema,
   Workflow: workflowSchema,
   Safety: safetySchema,
+<<<<<<< Updated upstream
   ToolCatalog: toolSchema
+=======
+  ToolCatalog: toolSchema,
+  GuiToolCatalog: guiToolSchema
+>>>>>>> Stashed changes
 };

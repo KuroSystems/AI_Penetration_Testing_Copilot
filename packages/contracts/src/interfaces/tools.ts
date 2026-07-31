@@ -24,10 +24,48 @@ export interface ToolCatalog {
   tools: ToolDefinition[];
 }
 
+<<<<<<< Updated upstream
 export interface ToolRecommendation {
   tool: ToolDefinition;
   reason: string;
   confidence: number;
+=======
+export interface GuiStep {
+  action: string;
+  description: string;
+  screenshotIdentifier?: string; // For later UI integration
+}
+
+export interface GuiToolDefinition {
+  id: string;
+  name: string;
+  description: string;
+  category: 'recon' | 'exploitation' | 'analysis' | 'utility';
+  tags: string[];
+  stepsTemplate: GuiStep[];
+  parameters: ToolParameter[];
+}
+
+export interface GuiToolCatalog {
+  id: string;
+  name: string;
+  version: string;
+  tools: GuiToolDefinition[];
+}
+
+export interface GuiNavigationRecommendation {
+  steps: GuiStep[];
+  toolId: string;
+  missingParameters: ToolParameter[];
+  explanation: string;
+}
+
+export interface ToolRecommendation {
+  tool: ToolDefinition | GuiToolDefinition;
+  reason: string;
+  confidence: number;
+  type: 'cli' | 'gui';
+>>>>>>> Stashed changes
 }
 
 export interface GeneratedCommand {

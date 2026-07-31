@@ -16,7 +16,12 @@ import { WorkflowEngine } from './workflow-engine';
 import { RulesEngine } from './rules-engine';
 import { ToolRecommendationEngine } from './tool-recommendation-engine';
 import { CommandGenerationEngine } from './command-generation-engine';
+<<<<<<< Updated upstream
 import { RuleAction } from '@ai-pentest/contracts';
+=======
+import { GuiNavigationEngine } from './gui-navigation-engine';
+import { RuleAction, ToolDefinition, GuiToolDefinition } from '@ai-pentest/contracts';
+>>>>>>> Stashed changes
 
 export interface PipelineStep {
   category?: string;
@@ -46,6 +51,10 @@ export class OrchestrationEngine {
   private rulesEngine: RulesEngine;
   private toolRecommendationEngine: ToolRecommendationEngine;
   private commandGenerationEngine: CommandGenerationEngine;
+<<<<<<< Updated upstream
+=======
+  private guiNavigationEngine: GuiNavigationEngine;
+>>>>>>> Stashed changes
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -70,6 +79,10 @@ export class OrchestrationEngine {
     this.rulesEngine = rulesEngine;
     this.toolRecommendationEngine = toolRecommendationEngine;
     this.commandGenerationEngine = new CommandGenerationEngine();
+<<<<<<< Updated upstream
+=======
+    this.guiNavigationEngine = new GuiNavigationEngine();
+>>>>>>> Stashed changes
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -170,6 +183,7 @@ export class OrchestrationEngine {
         confidence: confidenceResult.score
       };
     } else {
+<<<<<<< Updated upstream
       // 10. Tool Recommendation & Command Generation (Phase 10)
       const recommendations = this.toolRecommendationEngine.recommend(decision, updatedSession);
       let toolInfo = '';
@@ -193,6 +207,43 @@ export class OrchestrationEngine {
           toolData = { toolId: topTool.id, missingParameters: generated.missingParameters };
         }
       }
+=======
+        // 10. Tool Recommendation & Command Generation (Phase 10 & 11)
+        const recommendations = this.toolRecommendationEngine.recommend(decision, updatedSession);
+        let toolInfo = '';
+        let toolData: any = null;
+
+        if (recommendations.length > 0) {
+          const topRec = recommendations[0];
+          
+          if (topRec.type === 'cli') {
+            const tool = topRec.tool as ToolDefinition;
+            const generated = this.commandGenerationEngine.generate(tool, updatedSession);
+            
+            if (generated.missingParameters.length === 0) {
+              toolInfo = `\n\nSuggested Command:\n\`\`\`bash\n${generated.command}\n\`\`\`\n(${generated.explanation})`;
+              toolData = { toolId: tool.id, type: 'cli', command: generated.command, explanation: generated.explanation };
+            } else {
+              const missing = generated.missingParameters.map(p => p.name).join(', ');
+              toolInfo = `\n\nI recommend using ${tool.name}, but I need more information: ${missing}`;
+              toolData = { toolId: tool.id, type: 'cli', missingParameters: generated.missingParameters };
+            }
+          } else {
+            const tool = topRec.tool as GuiToolDefinition;
+            const generated = this.guiNavigationEngine.generate(tool, updatedSession);
+
+            if (generated.missingParameters.length === 0) {
+              toolInfo = `\n\nSuggested GUI Steps for ${tool.name}:\n` + 
+                generated.steps.map((s, idx) => `${idx + 1}. **${s.action}**: ${s.description}`).join('\n');
+              toolData = { toolId: tool.id, type: 'gui', steps: generated.steps, explanation: tool.description };
+            } else {
+              const missing = generated.missingParameters.map(p => p.name).join(', ');
+              toolInfo = `\n\nI recommend using ${tool.name}, but I need more information: ${missing}`;
+              toolData = { toolId: tool.id, type: 'gui', missingParameters: generated.missingParameters };
+            }
+          }
+        }
+>>>>>>> Stashed changes
 
       // 9. Safety Layer (Phase 9)
       const safetyReport = this.rulesEngine.evaluate(decision, updatedSession);

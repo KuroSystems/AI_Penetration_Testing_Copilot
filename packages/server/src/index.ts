@@ -34,9 +34,16 @@ rulesEngine.load().then(() => {
 
 // Tool Catalog setup
 const toolRegistryPath = path.join(__dirname, 'registry', 'tools');
+<<<<<<< Updated upstream
 const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath);
 toolRecommendationEngine.load().then(() => {
   console.log('Tool Registry loaded.');
+=======
+const guiToolRegistryPath = path.join(__dirname, 'registry', 'gui-tools');
+const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath, guiToolRegistryPath);
+toolRecommendationEngine.load().then(() => {
+  console.log('Tool Registries loaded.');
+>>>>>>> Stashed changes
 });
 
 // Persistence & Engine setup

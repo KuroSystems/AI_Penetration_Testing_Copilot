@@ -1,0 +1,47 @@
+{
+  "id": "burp-suite-tools",
+  "name": "Burp Suite Standard Procedures",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "id": "burp-repeater-test",
+      "name": "Burp Repeater Manual Test",
+      "description": "Manually testing a request in Burp Repeater to observe server response.",
+      "category": "analysis",
+      "tags": ["web", "burp", "repeater", "manual-test", "http-request"],
+      "stepsTemplate": [
+        {
+          "action": "Open Burp Suite",
+          "description": "Launch the Burp Suite application."
+        },
+        {
+          "action": "Send to Repeater",
+          "description": "Right-click the request for {{target}} in Proxy history and select 'Send to Repeater'."
+        },
+        {
+          "action": "Modify Request",
+          "description": "Go to the Repeater tab, modify the {{parameter}} parameter."
+        },
+        {
+          "action": "Send and Analyze",
+          "description": "Click 'Send' and observe the response for anomalies."
+        }
+      ],
+      "parameters": [
+        {
+          "name": "target",
+          "description": "The target URL",
+          "required": true,
+          "source": "session_target"
+        },
+        {
+          "name": "parameter",
+          "description": "The HTTP parameter to test",
+          "required": true,
+          "source": "user_input",
+          "defaultValue": "id"
+        }
+      ]
+    }
+  ]
+}
