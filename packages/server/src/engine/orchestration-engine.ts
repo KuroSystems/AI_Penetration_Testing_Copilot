@@ -127,6 +127,7 @@ export class OrchestrationEngine {
       this.modelProvider = provider;
       this.reasoningEngine = new ReasoningEngine(provider);
       this.clarificationEngine = new ClarificationEngine(provider);
+      this.knowledgeEngine.setProvider(provider);
   }
 
   private async publishTelemetry(topic: string, payload: any) {
@@ -174,9 +175,10 @@ export class OrchestrationEngine {
 
     const baseSystemPrompt = this.promptLoader.assemble(tags, variables);
 
+    // Phase 21: Await semantic search result
     let kbContext = '';
     if (userPrompt) {
-        const kbResults = this.knowledgeEngine.search(userPrompt);
+        const kbResults = await this.knowledgeEngine.search(userPrompt);
         if (kbResults.length > 0) {
             kbContext = "\n\nRelevant Knowledge Base entries:\n" + 
                 kbResults.map(r => `- ${r.entry.title}: ${r.entry.content}`).join('\n');
@@ -311,7 +313,6 @@ export class OrchestrationEngine {
     this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => console.error('Background memory refresh failed:', err));
     
     this.publishTelemetry('telemetry.latency', { engine: 'orchestration', latency: Date.now() - startTime });
-    // Mocking usage for now as MockProvider doesn't track it perfectly in real-time SSE
     this.publishTelemetry('telemetry.usage', { promptTokens: 100, completionTokens: 150 });
 
     return finalResult;

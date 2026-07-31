@@ -81,7 +81,8 @@ const auditEngine = new AuditEngine(auditLogDir);
 
 // Knowledge Base setup
 const knowledgeRegistryPath = path.join(__dirname, 'registry', 'knowledge-packs');
-const knowledgeEngine = new KnowledgeBaseEngine(knowledgeRegistryPath);
+const knowledgeStorageDir = path.join(__dirname, 'persistence', 'knowledge');
+const knowledgeEngine = new KnowledgeBaseEngine(knowledgeRegistryPath, knowledgeStorageDir, modelProvider);
 knowledgeEngine.load();
 
 // Persistence & Engine setup
@@ -298,6 +299,22 @@ app.get('/sessions/:id/audit', (req: Request, res: Response) => {
 
 app.get('/audit/verify', (req: Request, res: Response) => {
     res.json({ valid: auditEngine.verifyChain() });
+});
+
+// Knowledge Base Endpoints
+app.get('/knowledge/packs', (req: Request, res: Response) => {
+    res.json(knowledgeEngine.listPacks());
+});
+
+app.post('/knowledge/reload', async (req: Request, res: Response) => {
+    await knowledgeEngine.load();
+    res.json({ message: 'Knowledge Base reloaded' });
+});
+
+app.get('/knowledge/search', async (req: Request, res: Response) => {
+    const { q } = req.query;
+    if (!q) return res.status(400).json({ error: 'Query is required' });
+    res.json(await knowledgeEngine.search(q as string));
 });
 
 // Plugin Endpoints

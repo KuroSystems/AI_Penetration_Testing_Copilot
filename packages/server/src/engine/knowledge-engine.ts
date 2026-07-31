@@ -5,8 +5,10 @@ import {
   KnowledgePack, 
   KnowledgeEntry, 
   KnowledgeSearchResult, 
-  Schemas 
+  Schemas,
+  ModelProvider
 } from '@ai-pentest/contracts';
+import { SimpleVectorStore } from './vector-store';
 
 const ajv = new Ajv();
 const validatePack = ajv.compile(Schemas.KnowledgePack);
@@ -14,13 +16,24 @@ const validatePack = ajv.compile(Schemas.KnowledgePack);
 export class KnowledgeBaseEngine {
   private packs: Map<string, KnowledgePack> = new Map();
   private registryPath: string;
+  private vectorStore: SimpleVectorStore<KnowledgeEntry & { packId: string }>;
+  private modelProvider: ModelProvider;
 
-  constructor(registryPath: string) {
+  constructor(registryPath: string, storageDir: string, modelProvider: ModelProvider) {
     this.registryPath = registryPath;
+    this.modelProvider = modelProvider;
+    this.vectorStore = new SimpleVectorStore(storageDir, 'kb-vectors');
+  }
+
+  public setProvider(provider: ModelProvider) {
+      this.modelProvider = provider;
   }
 
   public async load(): Promise<void> {
     this.packs.clear();
+    // In a real app, we might want to re-index only changed packs
+    this.vectorStore.clear();
+
     if (!fs.existsSync(this.registryPath)) {
       fs.mkdirSync(this.registryPath, { recursive: true });
     }
@@ -36,6 +49,24 @@ export class KnowledgeBaseEngine {
           if (validatePack(pack)) {
             const kbPack = pack as unknown as KnowledgePack;
             this.packs.set(kbPack.metadata.id, kbPack);
+            
+            // Generate embeddings for all entries in the pack
+            console.log(`Indexing knowledge pack: ${kbPack.metadata.id}`);
+            for (const entry of kbPack.entries) {
+                const textToIndex = `${entry.title}\n${entry.content}\nTags: ${entry.tags.join(', ')}`;
+                try {
+                    if (this.modelProvider.getEmbeddings) {
+                        const vector = await this.modelProvider.getEmbeddings(textToIndex);
+                        this.vectorStore.upsert(
+                            `${kbPack.metadata.id}:${entry.id}`, 
+                            vector, 
+                            { ...entry, packId: kbPack.metadata.id }
+                        );
+                    }
+                } catch (err) {
+                    console.error(`Failed to index entry ${entry.id} in pack ${kbPack.metadata.id}:`, err);
+                }
+            }
             console.log(`Loaded knowledge pack: ${kbPack.metadata.id} v${kbPack.metadata.version}`);
           } else {
             console.error(`Invalid knowledge pack ${file}:`, validatePack.errors);
@@ -47,7 +78,27 @@ export class KnowledgeBaseEngine {
     }
   }
 
-  public search(query: string, limit: number = 5): KnowledgeSearchResult[] {
+  public async search(query: string, limit: number = 5): Promise<KnowledgeSearchResult[]> {
+    if (!this.modelProvider.getEmbeddings) {
+        return this.keywordSearch(query, limit);
+    }
+
+    try {
+        const queryVector = await this.modelProvider.getEmbeddings(query);
+        const vectorResults = this.vectorStore.query(queryVector, limit);
+        
+        return vectorResults.map(r => ({
+            entry: r.metadata,
+            packId: r.metadata.packId,
+            score: r.score
+        }));
+    } catch (err) {
+        console.error('Semantic search failed, falling back to keyword search:', err);
+        return this.keywordSearch(query, limit);
+    }
+  }
+
+  private keywordSearch(query: string, limit: number = 5): KnowledgeSearchResult[] {
     const results: KnowledgeSearchResult[] = [];
     const queryTerms = query.toLowerCase().split(/\s+/);
 
@@ -79,11 +130,5 @@ export class KnowledgeBaseEngine {
 
   public listPacks(): KnowledgePack[] {
     return Array.from(this.packs.values());
-  }
-
-  public getEntry(packId: string, entryId: string): KnowledgeEntry | null {
-    const pack = this.packs.get(packId);
-    if (!pack) return null;
-    return pack.entries.find(e => e.id === entryId) || null;
   }
 }

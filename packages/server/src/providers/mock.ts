@@ -67,4 +67,13 @@ export class MockModelProvider implements ModelProvider {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
+
+  async getEmbeddings(text: string, _model: string = 'llama3'): Promise<number[]> {
+    // Return a stable mock vector based on string length and first char
+    const vector = new Array(128).fill(0).map((_, i) => {
+        const charCode = text.charCodeAt(0) || 0;
+        return (charCode * (i + 1) + text.length) % 100 / 100;
+    });
+    return vector;
+  }
 }
