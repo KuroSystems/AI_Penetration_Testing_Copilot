@@ -18,12 +18,20 @@ import { AuditEngine } from './engine/audit-engine';
 import { KnowledgeBaseEngine } from './engine/knowledge-engine';
 import { ConfigManager } from './engine/config-manager';
 import { ModelManager } from './engine/model-manager';
+import { PluginManager } from './engine/plugin-manager';
 import { InternalEventBus } from './engine/event-bus';
 import { TelemetryEngine } from './engine/telemetry-engine';
 import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Plugin setup
+const pluginsDir = path.join(__dirname, '..', 'plugins');
+const pluginManager = new PluginManager(pluginsDir);
+pluginManager.loadPlugins().then(() => {
+    console.log('Plugins loaded.');
+});
 
 // Infrastructure
 const eventBus = new InternalEventBus();
@@ -290,6 +298,16 @@ app.get('/sessions/:id/audit', (req: Request, res: Response) => {
 
 app.get('/audit/verify', (req: Request, res: Response) => {
     res.json({ valid: auditEngine.verifyChain() });
+});
+
+// Plugin Endpoints
+app.get('/plugins', (req: Request, res: Response) => {
+    res.json(pluginManager.listPlugins());
+});
+
+app.post('/plugins/reload', async (req: Request, res: Response) => {
+    await pluginManager.loadPlugins();
+    res.json({ message: 'Plugins reloaded' });
 });
 
 app.listen(port, () => {

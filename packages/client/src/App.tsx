@@ -17,6 +17,7 @@ import { WorkflowViewer } from './pages/settings/WorkflowViewer';
 import { AuditLogViewer } from './pages/settings/AuditLogViewer';
 import { AnalyticsDashboard } from './pages/settings/AnalyticsDashboard';
 import { SafetyRulesManager } from './pages/settings/SafetyRulesManager';
+import { PluginMarketplace } from './pages/settings/PluginMarketplace';
 
 export default function App() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -113,6 +114,7 @@ export default function App() {
             <Route path="knowledge" element={<KnowledgeBaseManager />} />
             <Route path="workflows" element={<WorkflowViewer />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
+            <Route path="marketplace" element={<PluginMarketplace />} />
             <Route path="logs" element={<AuditLogViewer />} />
             <Route path="safety" element={<SafetyRulesManager />} />
             <Route path="extensions" element={<div className="p-4">Extensions Page (Coming Soon)</div>} />

@@ -160,7 +160,7 @@ export class OrchestrationEngine {
     if (!updatedSession) throw new Error('Session lost after update');
 
     const tags = this.orchConfig.pipeline
-      .sort((a, b: any) => b.priority - a.priority)
+      .sort((a: any, b: any) => (b.priority || 0) - (a.priority || 0))
       .flatMap((step: any) => step.tags || []);
     
     tags.push(updatedSession.state.currentPhase);

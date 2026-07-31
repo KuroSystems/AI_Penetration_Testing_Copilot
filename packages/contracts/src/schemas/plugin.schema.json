@@ -21,7 +21,11 @@
     "capabilities": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "permissions": {
+      "type": "array",
+      "items": { "type": "string" }
     }
   },
-  "required": ["id", "name", "version", "description", "type", "entryPoint", "capabilities"]
+  "required": ["id", "name", "version", "description", "type", "entryPoint", "capabilities", "permissions"]
 }

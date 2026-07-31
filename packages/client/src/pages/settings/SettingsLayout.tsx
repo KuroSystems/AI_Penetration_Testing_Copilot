@@ -21,8 +21,8 @@ const navItems = [
   { to: '/settings/workflows', icon: History, label: 'Workflows' },
   { to: '/settings/safety', icon: ShieldCheck, label: 'Safety Rules' },
   { to: '/settings/analytics', icon: Activity, label: 'Analytics' },
+  { to: '/settings/marketplace', icon: Boxes, label: 'Marketplace' },
   { to: '/settings/logs', icon: Terminal, label: 'Audit Logs' },
-  { to: '/settings/extensions', icon: Boxes, label: 'Extensions' },
   { to: '/settings/advanced', icon: Zap, label: 'Advanced' },
 ];
 

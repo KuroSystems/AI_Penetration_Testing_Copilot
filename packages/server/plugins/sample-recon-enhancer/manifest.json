@@ -1,0 +1,10 @@
+{
+  "id": "sample-recon-enhancer",
+  "name": "Sample Recon Enhancer",
+  "version": "1.0.0",
+  "description": "Adds extra technical context during the reconnaissance phase.",
+  "type": "recon",
+  "entryPoint": "index.js",
+  "capabilities": ["passive_recon", "metadata_extraction"],
+  "permissions": ["session_state", "logger"]
+}
