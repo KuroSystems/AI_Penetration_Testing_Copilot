@@ -14,7 +14,8 @@
   },
   "orchestration": {
     "checkpointInterval": 5,
-    "summaryThreshold": 20
+    "summaryThreshold": 20,
+    "multiAgentMode": true
   },
   "ollamaUrl": "http://localhost:11434",
   "useMock": false

@@ -22,7 +22,8 @@ export class ConfigManager {
     },
     orchestration: {
       checkpointInterval: 5,
-      summaryThreshold: 20
+      summaryThreshold: 20,
+      multiAgentMode: false
     },
     ollamaUrl: 'http://localhost:11434',
     useMock: false

@@ -8,7 +8,8 @@ import {
   RuleAction,
   AppConfig,
   EventBus,
-  MessageType
+  MessageType,
+  AgentRole
 } from '@ai-pentest/contracts';
 import { PromptRegistry } from '../registry/prompt-registry';
 import { PromptLoader } from '../registry/prompt-loader';
@@ -28,6 +29,7 @@ import { OutputFormatter } from './output-formatter';
 import { AuditEngine } from './audit-engine';
 import { KnowledgeBaseEngine } from './knowledge-engine';
 import { ConfigManager } from './config-manager';
+import { ReviewerAgent } from './agents/reviewer-agent';
 
 export interface PipelineStep {
   category?: string;
@@ -66,6 +68,7 @@ export class OrchestrationEngine {
   private configManager: ConfigManager;
   private eventBus: EventBus;
   private modelProvider: ModelProvider;
+  private reviewerAgent: ReviewerAgent;
   private orchConfig: any;
 
   constructor(
@@ -105,6 +108,7 @@ export class OrchestrationEngine {
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
     this.clarificationEngine = new ClarificationEngine(modelProvider);
+    this.reviewerAgent = new ReviewerAgent(modelProvider);
     
     const appConfig = this.configManager.getConfig();
 
@@ -128,6 +132,7 @@ export class OrchestrationEngine {
       this.reasoningEngine = new ReasoningEngine(provider);
       this.clarificationEngine = new ClarificationEngine(provider);
       this.knowledgeEngine.setProvider(provider);
+      this.reviewerAgent = new ReviewerAgent(provider);
   }
 
   private async publishTelemetry(topic: string, payload: any) {
@@ -175,7 +180,6 @@ export class OrchestrationEngine {
 
     const baseSystemPrompt = this.promptLoader.assemble(tags, variables);
 
-    // Phase 21: Await semantic search result
     let kbContext = '';
     if (userPrompt) {
         const kbResults = await this.knowledgeEngine.search(userPrompt);
@@ -214,6 +218,22 @@ export class OrchestrationEngine {
       if (onChunk) await this.streamString(questions, onChunk);
       await this.sessionEngine.addChatMessage(sessionId, 'assistant', questions);
       return { recommendedAction: 'Clarification Required', questions, validationErrors: validationResult.errors };
+    }
+
+    // Phase 22: Multi-Agent Review
+    if (appConfig.orchestration.multiAgentMode) {
+        const reviewStartTime = Date.now();
+        const review = await this.reviewerAgent.process({ decision, target: updatedSession.target });
+        this.publishTelemetry('telemetry.latency', { engine: 'reviewer', latency: Date.now() - reviewStartTime });
+        await this.auditEngine.log(sessionId, 'rule_trigger', { type: 'agent_review', review });
+        
+        if (!review.approved) {
+            console.log('Reviewer agent rejected the decision. Falling back to clarification.');
+            const questions = `The Security Reviewer flagged this recommendation: ${review.critique}. ${review.suggestedModification || 'Please provide more context.'}`;
+            if (onChunk) await this.streamString(questions, onChunk);
+            await this.sessionEngine.addChatMessage(sessionId, 'assistant', questions);
+            return { recommendedAction: 'Clarification Required', questions, reviewCritique: review.critique };
+        }
     }
 
     await this.auditEngine.log(sessionId, 'decision', decision);

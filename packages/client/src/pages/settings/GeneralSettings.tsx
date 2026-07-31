@@ -82,6 +82,16 @@ export function GeneralSettings() {
                 <option value="16384">16384</option>
               </select>
             </div>
+            <div className="flex items-center gap-3 pt-4 md:pt-8">
+              <input 
+                type="checkbox" 
+                id="multiAgentMode"
+                checked={config.orchestration.multiAgentMode}
+                onChange={(e) => handleUpdate({ orchestration: { multiAgentMode: e.target.checked } })}
+                className="w-4 h-4 rounded border-zinc-800 bg-zinc-900 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="multiAgentMode" className="text-sm text-zinc-300">Enable Multi-Agent Review Mode</label>
+            </div>
           </div>
         </div>
       </section>

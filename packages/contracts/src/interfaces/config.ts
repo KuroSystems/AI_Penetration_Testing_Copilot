@@ -16,6 +16,7 @@ export interface SafetySettings {
 export interface OrchestrationSettings {
   checkpointInterval: number;
   summaryThreshold: number;
+  multiAgentMode: boolean;
 }
 
 export interface AppConfig {

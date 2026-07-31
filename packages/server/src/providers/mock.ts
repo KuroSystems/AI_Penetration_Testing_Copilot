@@ -8,6 +8,18 @@ export class MockModelProvider implements ModelProvider {
   }
 
   async generateText(prompt: string, config?: Partial<ModelConfig>): Promise<ModelResponse> {
+    if (prompt.includes('Security Reviewer Agent')) {
+          return {
+            text: JSON.stringify({
+              approved: true,
+              critique: 'Mock Review: Action is within scope and technically sound.',
+              suggestedModification: null
+            }),
+            usage: { promptTokens: 30, completionTokens: 30, totalTokens: 60 },
+            raw: { mock: true }
+          };
+    }
+
     if (prompt.includes('Reasoning Engine')) {
       let targetPhase = 'recon';
       let recommendedAction = 'Run nmap scan';
@@ -69,7 +81,6 @@ export class MockModelProvider implements ModelProvider {
   }
 
   async getEmbeddings(text: string, _model: string = 'llama3'): Promise<number[]> {
-    // Return a stable mock vector based on string length and first char
     const vector = new Array(128).fill(0).map((_, i) => {
         const charCode = text.charCodeAt(0) || 0;
         return (charCode * (i + 1) + text.length) % 100 / 100;

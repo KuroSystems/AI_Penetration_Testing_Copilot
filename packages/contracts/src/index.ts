@@ -13,6 +13,7 @@ export * from './interfaces/formatter';
 export * from './interfaces/audit';
 export * from './interfaces/knowledge';
 export * from './interfaces/config';
+export * from './interfaces/agents';
 
 import * as sessionSchema from './schemas/session.schema.json';
 import * as promptSchema from './schemas/prompt.schema.json';
