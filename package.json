@@ -6,7 +6,9 @@
   ],
   "scripts": {
     "build:contracts": "npm run build --workspace=packages/contracts",
-    "start:server": "npm run start --workspace=packages/server"
+    "start:server": "npm run start --workspace=packages/server",
+    "build:all": "npm run build:contracts && npm run build --workspace=packages/server && npm run build --workspace=packages/client",
+    "package:desktop": "npm run build:all && npm run build --workspace=packages/desktop"
   },
   "dependencies": {
     "ws": "^8.21.1"

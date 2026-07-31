@@ -19,14 +19,24 @@ import { AnalyticsDashboard } from './pages/settings/AnalyticsDashboard';
 import { SafetyRulesManager } from './pages/settings/SafetyRulesManager';
 import { PluginMarketplace } from './pages/settings/PluginMarketplace';
 
+import { Onboarding } from './components/Onboarding';
+
 export default function App() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     loadSessions();
+    const hasOnboarded = localStorage.getItem('onboarded');
+    if (!hasOnboarded) setShowOnboarding(true);
   }, []);
+
+  const handleOnboardingComplete = () => {
+      localStorage.setItem('onboarded', 'true');
+      setShowOnboarding(false);
+  };
 
   const loadSessions = async () => {
     try {
@@ -55,6 +65,7 @@ export default function App() {
   return (
     <Router>
       <div className="flex h-screen w-full bg-zinc-900 text-gray-100 overflow-hidden font-sans">
+        {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
         <Routes>
           {/* Main Chat Route */}
           <Route path="/" element={
