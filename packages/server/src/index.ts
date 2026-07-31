@@ -16,39 +16,50 @@ import { ToolRecommendationEngine } from './engine/tool-recommendation-engine';
 import { OutputFormatter } from './engine/output-formatter';
 import { AuditEngine } from './engine/audit-engine';
 import { KnowledgeBaseEngine } from './engine/knowledge-engine';
+import { ConfigManager } from './engine/config-manager';
+import { ModelManager } from './engine/model-manager';
 import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Config setup
+const configDir = path.join(__dirname, 'persistence', 'config');
+const configManager = new ConfigManager(configDir);
+const appConfig = configManager.getConfig();
+
+// Model Provider setup
+let modelProvider: ModelProvider;
+if (process.env.USE_MOCK === 'true' || appConfig.useMock) {
+  console.log('Using Mock Model Provider');
+  modelProvider = new MockModelProvider();
+} else {
+  modelProvider = new OllamaProvider(appConfig.ollamaUrl);
+}
+
+// Model Manager
+const modelManager = new ModelManager(modelProvider);
+
 // Workflow setup
 const workflowRegistryPath = path.join(__dirname, 'registry', 'workflows');
 const workflowEngine = new WorkflowEngine(workflowRegistryPath);
-workflowEngine.load().then(() => {
-  console.log('Workflow Registry loaded.');
-});
+workflowEngine.load();
 
 // Safety Rules setup
 const rulesRegistryPath = path.join(__dirname, 'registry', 'rules');
 const rulesEngine = new RulesEngine(rulesRegistryPath);
-rulesEngine.load().then(() => {
-  console.log('Safety Rules Registry loaded.');
-});
+rulesEngine.load();
 
 // Tool Catalog setup
 const toolRegistryPath = path.join(__dirname, 'registry', 'tools');
 const guiToolRegistryPath = path.join(__dirname, 'registry', 'gui-tools');
 const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath, guiToolRegistryPath);
-toolRecommendationEngine.load().then(() => {
-  console.log('Tool Registries loaded.');
-});
+toolRecommendationEngine.load();
 
 // Formatter setup
 const formatterRegistryPath = path.join(__dirname, 'registry', 'formatters');
 const outputFormatter = new OutputFormatter(formatterRegistryPath);
-outputFormatter.load().then(() => {
-  console.log('Formatter Registry loaded.');
-});
+outputFormatter.load();
 
 // Audit setup
 const auditLogDir = path.join(__dirname, 'persistence', 'logs');
@@ -57,9 +68,7 @@ const auditEngine = new AuditEngine(auditLogDir);
 // Knowledge Base setup
 const knowledgeRegistryPath = path.join(__dirname, 'registry', 'knowledge-packs');
 const knowledgeEngine = new KnowledgeBaseEngine(knowledgeRegistryPath);
-knowledgeEngine.load().then(() => {
-  console.log('Knowledge Base loaded.');
-});
+knowledgeEngine.load();
 
 // Persistence & Engine setup
 const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
@@ -69,20 +78,7 @@ const compressionEngine = new TokenBudgetCompressionEngine();
 // Registry setup
 const promptRegistry = new PromptRegistry(path.join(__dirname, 'registry', 'prompts'));
 const promptLoader = new PromptLoader(promptRegistry);
-
-// Load prompts on startup
-promptRegistry.load().then(() => {
-  console.log('Prompt Registry loaded.');
-});
-
-let modelProvider: ModelProvider;
-
-if (process.env.USE_MOCK === 'true') {
-  console.log('Using Mock Model Provider');
-  modelProvider = new MockModelProvider();
-} else {
-  modelProvider = new OllamaProvider(process.env.OLLAMA_URL || 'http://localhost:11434');
-}
+promptRegistry.load();
 
 const memoryEngine = new MemoryEngine(modelProvider, sessionEngine);
 
@@ -98,29 +94,53 @@ const orchestrator = new OrchestrationEngine(
   outputFormatter,
   auditEngine,
   knowledgeEngine,
+  configManager,
   modelProvider
 );
 
 app.use(cors());
 app.use(express.json());
 
-// Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), provider: modelProvider.id });
+// Config Endpoints
+app.get('/config', (req, res) => {
+    res.json(configManager.getConfig());
 });
 
-// List models
-app.get('/models', async (req: Request, res: Response) => {
-  try {
-    if ('listModels' in modelProvider) {
-      const models = await (modelProvider as any).listModels();
-      res.json({ models });
-    } else {
-      res.status(501).json({ error: 'Not implemented for this provider' });
+app.patch('/config', (req, res) => {
+    const newConfig = configManager.updateConfig(req.body);
+    
+    // If provider related settings changed, update them
+    if (req.body.ollamaUrl || req.body.useMock !== undefined) {
+        if (newConfig.useMock) {
+            modelProvider = new MockModelProvider();
+        } else {
+            modelProvider = new OllamaProvider(newConfig.ollamaUrl);
+        }
+        modelManager.setProvider(modelProvider);
+        orchestrator.setProvider(modelProvider);
     }
-  } catch (error: any) {
-    res.status(503).json({ error: 'Service unavailable', details: error.message });
-  }
+    
+    res.json(newConfig);
+});
+
+// Model Manager Endpoints
+app.get('/models/available', async (req, res) => {
+    try {
+        const models = await modelManager.getAvailableModels();
+        res.json({ models });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/models/pull', async (req, res) => {
+    const { modelName } = req.body;
+    try {
+        await modelManager.pullModel(modelName);
+        res.json({ message: `Pulling model ${modelName} started` });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Generate text
@@ -129,7 +149,9 @@ app.post('/generate', async (req: Request, res: Response) => {
   
   try {
     if (sessionId) {
-      if (stream) {
+      const isStreaming = stream !== undefined ? stream : configManager.getConfig().model.streaming;
+      
+      if (isStreaming) {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
@@ -151,7 +173,6 @@ app.post('/generate', async (req: Request, res: Response) => {
         const assembledPrompt = promptLoader.assemble(tags, variables || {});
         finalPrompt = assembledPrompt + (prompt ? '\n\n' + prompt : '');
       }
-      
       const result = await modelProvider.generateText(finalPrompt || '', { modelName: model });
       res.json(result);
     }
@@ -174,7 +195,6 @@ app.post('/prompts/reload', async (req: Request, res: Response) => {
 app.post('/sessions', async (req: Request, res: Response) => {
   const { target, name, workflowId } = req.body;
   if (!target) return res.status(400).json({ error: 'Target is required' });
-  
   try {
     const session = await sessionEngine.createSession(target, name, workflowId);
     res.status(201).json(session);
@@ -218,13 +238,11 @@ app.get('/sessions/:id/context', async (req: Request, res: Response) => {
   try {
     const session = await sessionEngine.getSession(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found' });
-    
     const config = {
-      maxTokens: parseInt(req.query.maxTokens as string) || 4000,
+      maxTokens: parseInt(req.query.maxTokens as string) || configManager.getConfig().model.contextLength,
       reserveForResponse: parseInt(req.query.reserveForResponse as string) || 500,
       shortTermHistoryLimit: parseInt(req.query.shortTermHistoryLimit as string) || 20
     };
-    
     const context = await compressionEngine.compress(session, config);
     res.json(context);
   } catch (error: any) {
@@ -261,29 +279,12 @@ app.post('/rules/reload', async (req: Request, res: Response) => {
   res.json({ message: 'Safety rules reloaded' });
 });
 
-// Audit Endpoints
 app.get('/sessions/:id/audit', (req: Request, res: Response) => {
     res.json(auditEngine.getLogBySession(req.params.id));
 });
 
 app.get('/audit/verify', (req: Request, res: Response) => {
     res.json({ valid: auditEngine.verifyChain() });
-});
-
-// Knowledge Base Endpoints
-app.get('/knowledge/packs', (req: Request, res: Response) => {
-    res.json(knowledgeEngine.listPacks());
-});
-
-app.post('/knowledge/reload', async (req: Request, res: Response) => {
-    await knowledgeEngine.load();
-    res.json({ message: 'Knowledge Base reloaded' });
-});
-
-app.get('/knowledge/search', (req: Request, res: Response) => {
-    const { q } = req.query;
-    if (!q) return res.status(400).json({ error: 'Query is required' });
-    res.json(knowledgeEngine.search(q as string));
 });
 
 app.listen(port, () => {

@@ -5,7 +5,8 @@ import {
   ModelConfig,
   ToolDefinition, 
   GuiToolDefinition,
-  RuleAction
+  RuleAction,
+  AppConfig
 } from '@ai-pentest/contracts';
 import { PromptRegistry } from '../registry/prompt-registry';
 import { PromptLoader } from '../registry/prompt-loader';
@@ -24,6 +25,7 @@ import { ResponseValidator } from './response-validator';
 import { OutputFormatter } from './output-formatter';
 import { AuditEngine } from './audit-engine';
 import { KnowledgeBaseEngine } from './knowledge-engine';
+import { ConfigManager } from './config-manager';
 
 export interface PipelineStep {
   category?: string;
@@ -59,8 +61,9 @@ export class OrchestrationEngine {
   private outputFormatter: OutputFormatter;
   private auditEngine: AuditEngine;
   private knowledgeEngine: KnowledgeBaseEngine;
+  private configManager: ConfigManager;
   private modelProvider: ModelProvider;
-  private config: OrchestratorConfig;
+  private orchConfig: OrchestratorConfig;
 
   constructor(
     promptRegistry: PromptRegistry,
@@ -74,6 +77,7 @@ export class OrchestrationEngine {
     outputFormatter: OutputFormatter,
     auditEngine: AuditEngine,
     knowledgeEngine: KnowledgeBaseEngine,
+    configManager: ConfigManager,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -91,24 +95,33 @@ export class OrchestrationEngine {
     this.outputFormatter = outputFormatter;
     this.auditEngine = auditEngine;
     this.knowledgeEngine = knowledgeEngine;
+    this.configManager = configManager;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
     this.clarificationEngine = new ClarificationEngine(modelProvider);
     
-    this.config = {
+    const appConfig = this.configManager.getConfig();
+
+    this.orchConfig = {
       pipeline: [
         { tags: ['core'], priority: 100 },
         { tags: ['phase-specific'], priority: 50 }
       ],
       compression: {
-        maxTokens: 4000,
+        maxTokens: appConfig.model.contextLength,
         reserveForResponse: 500,
         shortTermHistoryLimit: 20
       },
-      checkpointInterval: 5,
+      checkpointInterval: appConfig.orchestration.checkpointInterval,
       ...config
     };
+  }
+
+  public setProvider(provider: ModelProvider) {
+      this.modelProvider = provider;
+      this.reasoningEngine = new ReasoningEngine(provider);
+      this.clarificationEngine = new ClarificationEngine(provider);
   }
 
   async process(
@@ -117,6 +130,7 @@ export class OrchestrationEngine {
     modelConfig?: Partial<ModelConfig>,
     onChunk?: (chunk: string) => void
   ): Promise<any> {
+    const appConfig = this.configManager.getConfig();
     const session = await this.sessionEngine.getSession(sessionId);
     if (!session) throw new Error(`Session ${sessionId} not found`);
 
@@ -128,7 +142,7 @@ export class OrchestrationEngine {
     const updatedSession = await this.sessionEngine.getSession(sessionId);
     if (!updatedSession) throw new Error('Session lost after update');
 
-    const tags = this.config.pipeline
+    const tags = this.orchConfig.pipeline
       .sort((a, b) => b.priority - a.priority)
       .flatMap(step => step.tags || []);
     
@@ -143,7 +157,6 @@ export class OrchestrationEngine {
 
     const baseSystemPrompt = this.promptLoader.assemble(tags, variables);
 
-    // Phase 15: Context Injection from Knowledge Base
     let kbContext = '';
     if (userPrompt) {
         const kbResults = this.knowledgeEngine.search(userPrompt);
@@ -153,13 +166,25 @@ export class OrchestrationEngine {
         }
     }
 
-    const context = await this.compressionEngine.compress(updatedSession, this.config.compression);
+    const context = await this.compressionEngine.compress(updatedSession, {
+        ...this.orchConfig.compression,
+        maxTokens: appConfig.model.contextLength
+    });
 
     const finalSystemPrompt = `${baseSystemPrompt}${kbContext}\n\n${context.systemPrompt}`;
     const messages = [...context.messages];
     
     const combinedPrompt = `${finalSystemPrompt}\n\n` + 
       messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
+
+    // Use appConfig for model parameters
+    const finalModelConfig: ModelConfig = {
+        modelName: appConfig.model.modelName,
+        temperature: appConfig.model.temperature,
+        topP: appConfig.model.topP,
+        maxTokens: 500, // or some other derived value
+        ...modelConfig
+    };
 
     let decision: any;
     let validationResult: any;
@@ -255,12 +280,15 @@ export class OrchestrationEngine {
       }
     }
 
-    if (onChunk) await this.streamString(assistantMessage, onChunk);
+    if (appConfig.model.streaming && onChunk) {
+        await this.streamString(assistantMessage, onChunk);
+    }
+
     await this.sessionEngine.addChatMessage(sessionId, 'assistant', assistantMessage);
     await this.sessionEngine.recordAction(sessionId, 'orchestrator_decision', finalResult);
     await this.sessionEngine.updateState(sessionId, { confidenceSnapshot: confidenceResult.score });
 
-    if (updatedSession.state.actionHistory.length % this.config.checkpointInterval === 0) {
+    if (updatedSession.state.actionHistory.length % this.orchConfig.checkpointInterval === 0) {
         await this.sessionEngine.createCheckpoint(sessionId);
         await this.auditEngine.log(sessionId, 'checkpoint', { state: updatedSession.state });
     }
