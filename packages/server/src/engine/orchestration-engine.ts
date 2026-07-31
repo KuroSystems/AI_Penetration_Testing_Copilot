@@ -6,7 +6,9 @@ import {
   ToolDefinition, 
   GuiToolDefinition,
   RuleAction,
-  AppConfig
+  AppConfig,
+  EventBus,
+  MessageType
 } from '@ai-pentest/contracts';
 import { PromptRegistry } from '../registry/prompt-registry';
 import { PromptLoader } from '../registry/prompt-loader';
@@ -38,9 +40,9 @@ export interface OrchestratorConfig {
   compression: {
     maxTokens: number;
     reserveForResponse: number;
-    shortTermHistoryLimit: number;
+    shorttermHistoryLimit: number;
   };
-  checkpointInterval: number; // Every X turns
+  checkpointInterval: number;
 }
 
 export class OrchestrationEngine {
@@ -62,8 +64,9 @@ export class OrchestrationEngine {
   private auditEngine: AuditEngine;
   private knowledgeEngine: KnowledgeBaseEngine;
   private configManager: ConfigManager;
+  private eventBus: EventBus;
   private modelProvider: ModelProvider;
-  private orchConfig: OrchestratorConfig;
+  private orchConfig: any;
 
   constructor(
     promptRegistry: PromptRegistry,
@@ -78,8 +81,9 @@ export class OrchestrationEngine {
     auditEngine: AuditEngine,
     knowledgeEngine: KnowledgeBaseEngine,
     configManager: ConfigManager,
+    eventBus: EventBus,
     modelProvider: ModelProvider,
-    config?: Partial<OrchestratorConfig>
+    config?: any
   ) {
     this.promptRegistry = promptRegistry;
     this.promptLoader = promptLoader;
@@ -96,6 +100,7 @@ export class OrchestrationEngine {
     this.auditEngine = auditEngine;
     this.knowledgeEngine = knowledgeEngine;
     this.configManager = configManager;
+    this.eventBus = eventBus;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -124,12 +129,24 @@ export class OrchestrationEngine {
       this.clarificationEngine = new ClarificationEngine(provider);
   }
 
+  private async publishTelemetry(topic: string, payload: any) {
+      this.eventBus.publish({
+          id: Math.random().toString(36).substring(7),
+          type: MessageType.EVENT,
+          source: 'orchestration-engine',
+          topic,
+          payload,
+          timestamp: new Date()
+      });
+  }
+
   async process(
     sessionId: string, 
     userPrompt?: string, 
     modelConfig?: Partial<ModelConfig>,
     onChunk?: (chunk: string) => void
   ): Promise<any> {
+    const startTime = Date.now();
     const appConfig = this.configManager.getConfig();
     const session = await this.sessionEngine.getSession(sessionId);
     if (!session) throw new Error(`Session ${sessionId} not found`);
@@ -143,8 +160,8 @@ export class OrchestrationEngine {
     if (!updatedSession) throw new Error('Session lost after update');
 
     const tags = this.orchConfig.pipeline
-      .sort((a, b) => b.priority - a.priority)
-      .flatMap(step => step.tags || []);
+      .sort((a, b: any) => b.priority - a.priority)
+      .flatMap((step: any) => step.tags || []);
     
     tags.push(updatedSession.state.currentPhase);
     tags.push('reasoning');
@@ -177,24 +194,18 @@ export class OrchestrationEngine {
     const combinedPrompt = `${finalSystemPrompt}\n\n` + 
       messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
-    // Use appConfig for model parameters
-    const finalModelConfig: ModelConfig = {
-        modelName: appConfig.model.modelName,
-        temperature: appConfig.model.temperature,
-        topP: appConfig.model.topP,
-        maxTokens: 500, // or some other derived value
-        ...modelConfig
-    };
-
     let decision: any;
     let validationResult: any;
 
+    const reasoningStartTime = Date.now();
     for (let attempt = 0; attempt < 2; attempt++) {
       decision = await this.reasoningEngine.think(combinedPrompt);
       validationResult = this.responseValidator.validate(decision, updatedSession);
       if (validationResult.isValid) break;
       await this.auditEngine.log(sessionId, 'rule_trigger', { attempt, errors: validationResult.errors });
+      this.publishTelemetry('telemetry.rule_trigger', { ruleId: 'validation-failure' });
     }
+    this.publishTelemetry('telemetry.latency', { engine: 'reasoning', latency: Date.now() - reasoningStartTime });
 
     if (!validationResult.isValid) {
       const questions = "I'm having trouble formulating the next step accurately. Could you provide more details about the target or previous findings?";
@@ -218,6 +229,8 @@ export class OrchestrationEngine {
     }
 
     const confidenceResult = this.confidenceEngine.calculate(updatedSession);
+    this.publishTelemetry('telemetry.confidence', { sessionId, score: confidenceResult.score });
+
     let finalResult: any = decision;
     let assistantMessage = '';
 
@@ -261,6 +274,7 @@ export class OrchestrationEngine {
       const safetyReport = this.rulesEngine.evaluate(decision, updatedSession);
       if (safetyReport.triggeredRules.length > 0) {
           await this.auditEngine.log(sessionId, 'rule_trigger', safetyReport);
+          safetyReport.triggeredRules.forEach(r => this.publishTelemetry('telemetry.rule_trigger', { ruleId: r.id }));
       }
 
       if (safetyReport.action === RuleAction.BLOCK) {
@@ -273,6 +287,7 @@ export class OrchestrationEngine {
         const formatted = this.outputFormatter.format({ ...decision, confidence: confidenceResult.score });
         assistantMessage = `${formatted}${toolInfo}`;
         finalResult = { ...decision, confidence: confidenceResult.score, safetyReport, toolRecommendation: toolData };
+
         if (toolData && 'missingParameters' in toolData) {
             finalResult.recommendedAction = 'Clarification Required';
             finalResult.questions = `To run ${toolData.toolId}, please provide: ${toolData.missingParameters.map((p: any) => p.name).join(', ')}`;
@@ -294,6 +309,10 @@ export class OrchestrationEngine {
     }
 
     this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => console.error('Background memory refresh failed:', err));
+    
+    this.publishTelemetry('telemetry.latency', { engine: 'orchestration', latency: Date.now() - startTime });
+    // Mocking usage for now as MockProvider doesn't track it perfectly in real-time SSE
+    this.publishTelemetry('telemetry.usage', { promptTokens: 100, completionTokens: 150 });
 
     return finalResult;
   }

@@ -8,7 +8,8 @@ import {
   History,
   FileText,
   Boxes,
-  Zap
+  Zap,
+  Activity
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/settings/knowledge', icon: BookOpen, label: 'Knowledge Base' },
   { to: '/settings/workflows', icon: History, label: 'Workflows' },
   { to: '/settings/safety', icon: ShieldCheck, label: 'Safety Rules' },
+  { to: '/settings/analytics', icon: Activity, label: 'Analytics' },
   { to: '/settings/logs', icon: Terminal, label: 'Audit Logs' },
   { to: '/settings/extensions', icon: Boxes, label: 'Extensions' },
   { to: '/settings/advanced', icon: Zap, label: 'Advanced' },

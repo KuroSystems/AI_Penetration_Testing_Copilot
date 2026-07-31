@@ -18,10 +18,16 @@ import { AuditEngine } from './engine/audit-engine';
 import { KnowledgeBaseEngine } from './engine/knowledge-engine';
 import { ConfigManager } from './engine/config-manager';
 import { ModelManager } from './engine/model-manager';
+import { InternalEventBus } from './engine/event-bus';
+import { TelemetryEngine } from './engine/telemetry-engine';
 import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Infrastructure
+const eventBus = new InternalEventBus();
+const telemetryEngine = new TelemetryEngine(eventBus);
 
 // Config setup
 const configDir = path.join(__dirname, 'persistence', 'config');
@@ -95,6 +101,7 @@ const orchestrator = new OrchestrationEngine(
   auditEngine,
   knowledgeEngine,
   configManager,
+  eventBus,
   modelProvider
 );
 
@@ -108,8 +115,6 @@ app.get('/config', (req, res) => {
 
 app.patch('/config', (req, res) => {
     const newConfig = configManager.updateConfig(req.body);
-    
-    // If provider related settings changed, update them
     if (req.body.ollamaUrl || req.body.useMock !== undefined) {
         if (newConfig.useMock) {
             modelProvider = new MockModelProvider();
@@ -119,8 +124,12 @@ app.patch('/config', (req, res) => {
         modelManager.setProvider(modelProvider);
         orchestrator.setProvider(modelProvider);
     }
-    
     res.json(newConfig);
+});
+
+// Telemetry Endpoint
+app.get('/telemetry', (req, res) => {
+    res.json(telemetryEngine.getMetrics());
 });
 
 // Model Manager Endpoints
@@ -146,20 +155,16 @@ app.post('/models/pull', async (req, res) => {
 // Generate text
 app.post('/generate', async (req: Request, res: Response) => {
   const { prompt, model, stream, tags, variables, sessionId } = req.body;
-  
   try {
     if (sessionId) {
       const isStreaming = stream !== undefined ? stream : configManager.getConfig().model.streaming;
-      
       if (isStreaming) {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
-
         const result = await orchestrator.process(sessionId, prompt, { modelName: model }, (chunk) => {
           res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
         });
-
         res.write(`data: ${JSON.stringify({ finalResult: result })}\n\n`);
         res.write('data: [DONE]\n\n');
         res.end();

@@ -15,6 +15,8 @@ import { PromptManager } from './pages/settings/PromptManager';
 import { KnowledgeBaseManager } from './pages/settings/KnowledgeBaseManager';
 import { WorkflowViewer } from './pages/settings/WorkflowViewer';
 import { AuditLogViewer } from './pages/settings/AuditLogViewer';
+import { AnalyticsDashboard } from './pages/settings/AnalyticsDashboard';
+import { SafetyRulesManager } from './pages/settings/SafetyRulesManager';
 
 export default function App() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -110,8 +112,9 @@ export default function App() {
             <Route path="prompts" element={<PromptManager />} />
             <Route path="knowledge" element={<KnowledgeBaseManager />} />
             <Route path="workflows" element={<WorkflowViewer />} />
+            <Route path="analytics" element={<AnalyticsDashboard />} />
             <Route path="logs" element={<AuditLogViewer />} />
-            <Route path="safety" element={<div className="p-4">Safety Rules Page (Coming Soon)</div>} />
+            <Route path="safety" element={<SafetyRulesManager />} />
             <Route path="extensions" element={<div className="p-4">Extensions Page (Coming Soon)</div>} />
             <Route path="advanced" element={<div className="p-4">Advanced Config (Coming Soon)</div>} />
           </Route>
