@@ -14,6 +14,7 @@ import { WorkflowEngine } from './engine/workflow-engine';
 import { RulesEngine } from './engine/rules-engine';
 import { ToolRecommendationEngine } from './engine/tool-recommendation-engine';
 import { OutputFormatter } from './engine/output-formatter';
+import { AuditEngine } from './engine/audit-engine';
 import path from 'path';
 
 const app = express();
@@ -47,6 +48,10 @@ const outputFormatter = new OutputFormatter(formatterRegistryPath);
 outputFormatter.load().then(() => {
   console.log('Formatter Registry loaded.');
 });
+
+// Audit setup
+const auditLogDir = path.join(__dirname, 'persistence', 'logs');
+const auditEngine = new AuditEngine(auditLogDir);
 
 // Persistence & Engine setup
 const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
@@ -83,6 +88,7 @@ const orchestrator = new OrchestrationEngine(
   rulesEngine,
   toolRecommendationEngine,
   outputFormatter,
+  auditEngine,
   modelProvider
 );
 
@@ -244,6 +250,15 @@ app.get('/rules', (req: Request, res: Response) => {
 app.post('/rules/reload', async (req: Request, res: Response) => {
   await rulesEngine.load();
   res.json({ message: 'Safety rules reloaded' });
+});
+
+// Audit Endpoints
+app.get('/sessions/:id/audit', (req: Request, res: Response) => {
+    res.json(auditEngine.getLogBySession(req.params.id));
+});
+
+app.get('/audit/verify', (req: Request, res: Response) => {
+    res.json({ valid: auditEngine.verifyChain() });
 });
 
 app.listen(port, () => {

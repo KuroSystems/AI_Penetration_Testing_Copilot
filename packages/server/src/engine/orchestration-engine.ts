@@ -22,6 +22,7 @@ import { CommandGenerationEngine } from './command-generation-engine';
 import { GuiNavigationEngine } from './gui-navigation-engine';
 import { ResponseValidator } from './response-validator';
 import { OutputFormatter } from './output-formatter';
+import { AuditEngine } from './audit-engine';
 
 export interface PipelineStep {
   category?: string;
@@ -36,6 +37,7 @@ export interface OrchestratorConfig {
     reserveForResponse: number;
     shortTermHistoryLimit: number;
   };
+  checkpointInterval: number; // Every X turns
 }
 
 export class OrchestrationEngine {
@@ -54,6 +56,7 @@ export class OrchestrationEngine {
   private guiNavigationEngine: GuiNavigationEngine;
   private responseValidator: ResponseValidator;
   private outputFormatter: OutputFormatter;
+  private auditEngine: AuditEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -67,6 +70,7 @@ export class OrchestrationEngine {
     rulesEngine: RulesEngine,
     toolRecommendationEngine: ToolRecommendationEngine,
     outputFormatter: OutputFormatter,
+    auditEngine: AuditEngine,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -82,6 +86,7 @@ export class OrchestrationEngine {
     this.guiNavigationEngine = new GuiNavigationEngine();
     this.responseValidator = new ResponseValidator();
     this.outputFormatter = outputFormatter;
+    this.auditEngine = auditEngine;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -97,6 +102,7 @@ export class OrchestrationEngine {
         reserveForResponse: 500,
         shortTermHistoryLimit: 20
       },
+      checkpointInterval: 5,
       ...config
     };
   }
@@ -112,6 +118,7 @@ export class OrchestrationEngine {
 
     if (userPrompt) {
       await this.sessionEngine.addChatMessage(sessionId, 'user', userPrompt);
+      await this.auditEngine.log(sessionId, 'action', { userPrompt });
     }
 
     const updatedSession = await this.sessionEngine.getSession(sessionId);
@@ -146,15 +153,18 @@ export class OrchestrationEngine {
       decision = await this.reasoningEngine.think(combinedPrompt);
       validationResult = this.responseValidator.validate(decision, updatedSession);
       if (validationResult.isValid) break;
-      console.warn(`Reasoning validation failed on attempt ${attempt + 1}: ${validationResult.errors.join(', ')}`);
+      await this.auditEngine.log(sessionId, 'rule_trigger', { attempt, errors: validationResult.errors });
     }
 
     if (!validationResult.isValid) {
       const questions = "I'm having trouble formulating the next step accurately. Could you provide more details about the target or previous findings?";
       if (onChunk) await this.streamString(questions, onChunk);
       await this.sessionEngine.addChatMessage(sessionId, 'assistant', questions);
+      await this.auditEngine.log(sessionId, 'decision', { recommendedAction: 'Clarification Required (Validation Failure)' });
       return { recommendedAction: 'Clarification Required', questions, validationErrors: validationResult.errors };
     }
+
+    await this.auditEngine.log(sessionId, 'decision', decision);
 
     if (decision.currentPhase && decision.currentPhase !== updatedSession.state.currentPhase) {
       try {
@@ -162,6 +172,7 @@ export class OrchestrationEngine {
         await this.sessionEngine.transitionStage(sessionId, decision.currentPhase, (from, to) => {
           return this.workflowEngine.validateTransition(workflowId, from, to);
         });
+        await this.auditEngine.log(sessionId, 'state_change', { from: updatedSession.state.currentPhase, to: decision.currentPhase });
       } catch (err: any) {
         console.warn(`Attempted invalid transition: ${err.message}`);
       }
@@ -209,6 +220,10 @@ export class OrchestrationEngine {
         }
 
       const safetyReport = this.rulesEngine.evaluate(decision, updatedSession);
+      if (safetyReport.triggeredRules.length > 0) {
+          await this.auditEngine.log(sessionId, 'rule_trigger', safetyReport);
+      }
+
       if (safetyReport.action === RuleAction.BLOCK) {
         assistantMessage = `I cannot recommend the next step because it violates safety rules: ${safetyReport.message}`;
         finalResult = { ...decision, recommendedAction: 'BLOCKED', safetyReport };
@@ -230,6 +245,13 @@ export class OrchestrationEngine {
     await this.sessionEngine.addChatMessage(sessionId, 'assistant', assistantMessage);
     await this.sessionEngine.recordAction(sessionId, 'orchestrator_decision', finalResult);
     await this.sessionEngine.updateState(sessionId, { confidenceSnapshot: confidenceResult.score });
+
+    // Periodic Checkpoint
+    if (updatedSession.state.actionHistory.length % this.config.checkpointInterval === 0) {
+        await this.sessionEngine.createCheckpoint(sessionId);
+        await this.auditEngine.log(sessionId, 'checkpoint', { state: updatedSession.state });
+    }
+
     this.memoryEngine.refreshLongTermMemory(sessionId).catch(err => console.error('Background memory refresh failed:', err));
 
     return finalResult;

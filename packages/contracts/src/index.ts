@@ -10,6 +10,7 @@ export * from './interfaces/safety';
 export * from './interfaces/tools';
 export * from './interfaces/validation';
 export * from './interfaces/formatter';
+export * from './interfaces/audit';
 
 import * as sessionSchema from './schemas/session.schema.json';
 import * as promptSchema from './schemas/prompt.schema.json';

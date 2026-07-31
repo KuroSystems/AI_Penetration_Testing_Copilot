@@ -1,0 +1,60 @@
+{
+  "name": "Audit Engine Test",
+  "target": "audit-test.com",
+  "status": "active",
+  "metadata": {
+    "workflowId": "standard-pentest"
+  },
+  "state": {
+    "currentPhase": "recon",
+    "stageHistory": [
+      {
+        "stage": "scoping",
+        "enteredAt": "2026-07-31T07:44:39.709Z"
+      },
+      {
+        "stage": "recon",
+        "enteredAt": "2026-07-31T07:44:39.728Z"
+      }
+    ],
+    "knownFacts": [
+      "System is running Linux"
+    ],
+    "pinnedFacts": [],
+    "openQuestions": [
+      "What are the objectives?"
+    ],
+    "actionHistory": [
+      {
+        "action": "orchestrator_decision",
+        "result": {
+          "currentPhase": "recon",
+          "missingInfo": [],
+          "recommendedAction": "Clarification Required",
+          "rationale": "Simulated reasoning for Attempt to exploit the service",
+          "confidence": 0.3,
+          "needsClarification": false,
+          "questions": "Mock response to: \"\n      You are the AI Pentest Copilot. Your confidence in the next action is low.\n      \n      Current Pentest State:\n      - Target: audit-test.com\n      - Phase: scoping\n      - Known Facts: None\n      - Rationale for uncertainty: Simulated reasoning for Attempt to exploit the service\n      \n      Task:\n      Generate a clear, technical, and targeted set of questions for the user (the pentester) \n      to provide the missing information needed to proceed confidently. \n      Keep it professional and concise.\n      \n      Questions:\n    \" using default-model"
+        },
+        "timestamp": "2026-07-31T07:44:39.728Z"
+      }
+    ],
+    "chatHistory": [
+      {
+        "role": "user",
+        "content": "Who are you?",
+        "timestamp": "2026-07-31T07:44:39.719Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Mock response to: \"\n      You are the AI Pentest Copilot. Your confidence in the next action is low.\n      \n      Current Pentest State:\n      - Target: audit-test.com\n      - Phase: scoping\n      - Known Facts: None\n      - Rationale for uncertainty: Simulated reasoning for Attempt to exploit the service\n      \n      Task:\n      Generate a clear, technical, and targeted set of questions for the user (the pentester) \n      to provide the missing information needed to proceed confidently. \n      Keep it professional and concise.\n      \n      Questions:\n    \" using default-model",
+        "timestamp": "2026-07-31T07:44:39.728Z"
+      }
+    ],
+    "confidenceSnapshot": 0.3
+  },
+  "version": 1,
+  "id": "a0ae97d1-615d-4433-9c27-50b2fef26a88",
+  "createdAt": "2026-07-31T07:44:39.709Z",
+  "updatedAt": "2026-07-31T07:44:39.732Z"
+}

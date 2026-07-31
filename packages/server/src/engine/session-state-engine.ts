@@ -147,4 +147,13 @@ export class SessionStateEngine {
       endTime: new Date()
     });
   }
+
+  async createCheckpoint(id: string): Promise<void> {
+    const session = await this.repository.getById(id);
+    if (!session) throw new Error(`Session ${id} not found`);
+
+    // In this file-based implementation, every update is already persistent.
+    // However, a "checkpoint" can be an explicit marker in the audit log or a separate backup.
+    console.log(`Creating explicit checkpoint for session ${id}`);
+  }
 }
