@@ -1,10 +1,12 @@
-import { Session, SessionRepository, SessionStatus, SessionState } from '@ai-pentest/contracts';
+import { Session, SessionRepository, SessionStatus, SessionState, EventBus, MessageType } from '@ai-pentest/contracts';
 
 export class SessionStateEngine {
   private repository: SessionRepository;
+  private eventBus: EventBus;
 
-  constructor(repository: SessionRepository) {
+  constructor(repository: SessionRepository, eventBus: EventBus) {
     this.repository = repository;
+    this.eventBus = eventBus;
   }
 
   async createSession(target: string, name?: string, workflowId: string = 'standard-pentest'): Promise<Session> {
@@ -19,7 +21,7 @@ export class SessionStateEngine {
       confidenceSnapshot: 0.1
     };
 
-    return this.repository.create({
+    const session = await this.repository.create({
       name: name || `Session ${new Date().toISOString()}`,
       target,
       status: SessionStatus.ACTIVE,
@@ -27,6 +29,9 @@ export class SessionStateEngine {
       state: initialState,
       version: 1
     });
+
+    this.publishUpdate(session.id, session.state);
+    return session;
   }
 
   async transitionStage(id: string, nextStage: string, validator: (from: string, to: string) => boolean): Promise<Session> {
@@ -45,13 +50,16 @@ export class SessionStateEngine {
       { stage: nextStage, enteredAt: new Date() }
     ];
 
-    return this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       state: { 
         ...session.state, 
         currentPhase: nextStage,
         stageHistory 
       }
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async addChatMessage(id: string, role: 'user' | 'assistant' | 'system', content: string): Promise<Session> {
@@ -63,9 +71,12 @@ export class SessionStateEngine {
       { role, content, timestamp: new Date() }
     ];
 
-    return this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       state: { ...session.state, chatHistory }
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async pinFact(id: string, fact: string): Promise<Session> {
@@ -73,18 +84,24 @@ export class SessionStateEngine {
     if (!session) throw new Error(`Session ${id} not found`);
     
     const pinnedFacts = [...new Set([...(session.state.pinnedFacts || []), fact])];
-    return this.repository.update(id, { 
+    const updated = await this.repository.update(id, { 
       state: { ...session.state, pinnedFacts } 
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async setSummary(id: string, summary: string): Promise<Session> {
     const session = await this.repository.getById(id);
     if (!session) throw new Error(`Session ${id} not found`);
     
-    return this.repository.update(id, { 
+    const updated = await this.repository.update(id, { 
       state: { ...session.state, summary } 
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async getSession(id: string): Promise<Session | null> {
@@ -95,17 +112,20 @@ export class SessionStateEngine {
     return this.repository.list();
   }
 
-  async updateState(id: string, stateUpdate: Partial<SessionState>): Promise<Session> {
+  async updateState(id: string, stateUpdate: Partial<SessionState>, skipPublish: boolean = false): Promise<Session> {
     const session = await this.repository.getById(id);
     if (!session) throw new Error(`Session ${id} not found`);
 
     const newState: SessionState = {
       ...session.state,
       ...stateUpdate,
-      actionHistory: [...session.state.actionHistory, ...(stateUpdate.actionHistory || [])]
     };
 
-    return this.repository.update(id, { state: newState });
+    const updated = await this.repository.update(id, { state: newState });
+    if (!skipPublish) {
+        this.publishUpdate(id, updated.state);
+    }
+    return updated;
   }
 
   async addFact(id: string, fact: string): Promise<Session> {
@@ -113,9 +133,12 @@ export class SessionStateEngine {
     if (!session) throw new Error(`Session ${id} not found`);
     
     const knownFacts = [...new Set([...session.state.knownFacts, fact])];
-    return this.repository.update(id, { 
+    const updated = await this.repository.update(id, { 
       state: { ...session.state, knownFacts } 
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async recordAction(id: string, action: string, result: any): Promise<Session> {
@@ -127,33 +150,49 @@ export class SessionStateEngine {
       { action, result, timestamp: new Date() }
     ];
 
-    return this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       state: { ...session.state, actionHistory }
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async setPhase(id: string, phase: string): Promise<Session> {
     const session = await this.repository.getById(id);
     if (!session) throw new Error(`Session ${id} not found`);
 
-    return this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       state: { ...session.state, currentPhase: phase }
     });
+
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async completeSession(id: string): Promise<Session> {
-    return this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       status: SessionStatus.COMPLETED,
       endTime: new Date()
     });
+    this.publishUpdate(id, updated.state);
+    return updated;
   }
 
   async createCheckpoint(id: string): Promise<void> {
     const session = await this.repository.getById(id);
     if (!session) throw new Error(`Session ${id} not found`);
-
-    // In this file-based implementation, every update is already persistent.
-    // However, a "checkpoint" can be an explicit marker in the audit log or a separate backup.
     console.log(`Creating explicit checkpoint for session ${id}`);
+  }
+
+  private publishUpdate(sessionId: string, state: SessionState) {
+      this.eventBus.publish({
+          id: Math.random().toString(36).substring(7),
+          type: MessageType.EVENT,
+          source: 'session-engine',
+          topic: 'session.updated',
+          payload: { sessionId, state },
+          timestamp: new Date()
+      });
   }
 }

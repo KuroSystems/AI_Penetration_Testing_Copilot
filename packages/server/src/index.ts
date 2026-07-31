@@ -21,17 +21,11 @@ import { ModelManager } from './engine/model-manager';
 import { PluginManager } from './engine/plugin-manager';
 import { InternalEventBus } from './engine/event-bus';
 import { TelemetryEngine } from './engine/telemetry-engine';
+import { SyncEngine } from './engine/sync-engine';
 import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-// Plugin setup
-const pluginsDir = path.join(__dirname, '..', 'plugins');
-const pluginManager = new PluginManager(pluginsDir);
-pluginManager.loadPlugins().then(() => {
-    console.log('Plugins loaded.');
-});
 
 // Infrastructure
 const eventBus = new InternalEventBus();
@@ -50,6 +44,25 @@ if (process.env.USE_MOCK === 'true' || appConfig.useMock) {
 } else {
   modelProvider = new OllamaProvider(appConfig.ollamaUrl);
 }
+
+// Persistence & Engine setup
+const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
+const sessionEngine = new SessionStateEngine(sessionRepo, eventBus);
+
+// Sync Engine (Phase 23)
+const syncEngine = new SyncEngine(sessionEngine, eventBus);
+if (appConfig.sync.enabled) {
+    syncEngine.start(appConfig.sync.port).then(() => {
+        console.log('Collaboration Sync Layer active.');
+    });
+}
+
+// Plugin setup
+const pluginsDir = path.join(__dirname, '..', 'plugins');
+const pluginManager = new PluginManager(pluginsDir);
+pluginManager.loadPlugins().then(() => {
+    console.log('Plugins loaded.');
+});
 
 // Model Manager
 const modelManager = new ModelManager(modelProvider);
@@ -85,9 +98,6 @@ const knowledgeStorageDir = path.join(__dirname, 'persistence', 'knowledge');
 const knowledgeEngine = new KnowledgeBaseEngine(knowledgeRegistryPath, knowledgeStorageDir, modelProvider);
 knowledgeEngine.load();
 
-// Persistence & Engine setup
-const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
-const sessionEngine = new SessionStateEngine(sessionRepo);
 const compressionEngine = new TokenBudgetCompressionEngine();
 
 // Registry setup

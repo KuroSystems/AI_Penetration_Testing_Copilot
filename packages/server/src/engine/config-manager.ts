@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { AppConfig } from '@ai-pentest/contracts';
+import { AppConfig, ModelSettings, SafetySettings, OrchestrationSettings, SyncSettings } from '@ai-pentest/contracts';
 
 export class ConfigManager {
   private configPath: string;
@@ -24,6 +24,12 @@ export class ConfigManager {
       checkpointInterval: 5,
       summaryThreshold: 20,
       multiAgentMode: false
+    },
+    sync: {
+      enabled: false,
+      port: 4000,
+      peerDiscovery: true,
+      knownPeers: []
     },
     ollamaUrl: 'http://localhost:11434',
     useMock: false
