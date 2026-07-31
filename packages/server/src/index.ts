@@ -15,6 +15,7 @@ import { RulesEngine } from './engine/rules-engine';
 import { ToolRecommendationEngine } from './engine/tool-recommendation-engine';
 import { OutputFormatter } from './engine/output-formatter';
 import { AuditEngine } from './engine/audit-engine';
+import { KnowledgeBaseEngine } from './engine/knowledge-engine';
 import path from 'path';
 
 const app = express();
@@ -53,6 +54,13 @@ outputFormatter.load().then(() => {
 const auditLogDir = path.join(__dirname, 'persistence', 'logs');
 const auditEngine = new AuditEngine(auditLogDir);
 
+// Knowledge Base setup
+const knowledgeRegistryPath = path.join(__dirname, 'registry', 'knowledge-packs');
+const knowledgeEngine = new KnowledgeBaseEngine(knowledgeRegistryPath);
+knowledgeEngine.load().then(() => {
+  console.log('Knowledge Base loaded.');
+});
+
 // Persistence & Engine setup
 const sessionRepo = new FileSessionRepository(path.join(__dirname, 'persistence', 'sessions'));
 const sessionEngine = new SessionStateEngine(sessionRepo);
@@ -89,6 +97,7 @@ const orchestrator = new OrchestrationEngine(
   toolRecommendationEngine,
   outputFormatter,
   auditEngine,
+  knowledgeEngine,
   modelProvider
 );
 
@@ -259,6 +268,22 @@ app.get('/sessions/:id/audit', (req: Request, res: Response) => {
 
 app.get('/audit/verify', (req: Request, res: Response) => {
     res.json({ valid: auditEngine.verifyChain() });
+});
+
+// Knowledge Base Endpoints
+app.get('/knowledge/packs', (req: Request, res: Response) => {
+    res.json(knowledgeEngine.listPacks());
+});
+
+app.post('/knowledge/reload', async (req: Request, res: Response) => {
+    await knowledgeEngine.load();
+    res.json({ message: 'Knowledge Base reloaded' });
+});
+
+app.get('/knowledge/search', (req: Request, res: Response) => {
+    const { q } = req.query;
+    if (!q) return res.status(400).json({ error: 'Query is required' });
+    res.json(knowledgeEngine.search(q as string));
 });
 
 app.listen(port, () => {

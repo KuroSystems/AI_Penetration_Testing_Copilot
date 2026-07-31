@@ -23,6 +23,7 @@ import { GuiNavigationEngine } from './gui-navigation-engine';
 import { ResponseValidator } from './response-validator';
 import { OutputFormatter } from './output-formatter';
 import { AuditEngine } from './audit-engine';
+import { KnowledgeBaseEngine } from './knowledge-engine';
 
 export interface PipelineStep {
   category?: string;
@@ -57,6 +58,7 @@ export class OrchestrationEngine {
   private responseValidator: ResponseValidator;
   private outputFormatter: OutputFormatter;
   private auditEngine: AuditEngine;
+  private knowledgeEngine: KnowledgeBaseEngine;
   private modelProvider: ModelProvider;
   private config: OrchestratorConfig;
 
@@ -71,6 +73,7 @@ export class OrchestrationEngine {
     toolRecommendationEngine: ToolRecommendationEngine,
     outputFormatter: OutputFormatter,
     auditEngine: AuditEngine,
+    knowledgeEngine: KnowledgeBaseEngine,
     modelProvider: ModelProvider,
     config?: Partial<OrchestratorConfig>
   ) {
@@ -87,6 +90,7 @@ export class OrchestrationEngine {
     this.responseValidator = new ResponseValidator();
     this.outputFormatter = outputFormatter;
     this.auditEngine = auditEngine;
+    this.knowledgeEngine = knowledgeEngine;
     this.modelProvider = modelProvider;
     this.reasoningEngine = new ReasoningEngine(modelProvider);
     this.confidenceEngine = new ConfidenceScoringEngine();
@@ -138,9 +142,20 @@ export class OrchestrationEngine {
     };
 
     const baseSystemPrompt = this.promptLoader.assemble(tags, variables);
+
+    // Phase 15: Context Injection from Knowledge Base
+    let kbContext = '';
+    if (userPrompt) {
+        const kbResults = this.knowledgeEngine.search(userPrompt);
+        if (kbResults.length > 0) {
+            kbContext = "\n\nRelevant Knowledge Base entries:\n" + 
+                kbResults.map(r => `- ${r.entry.title}: ${r.entry.content}`).join('\n');
+        }
+    }
+
     const context = await this.compressionEngine.compress(updatedSession, this.config.compression);
 
-    const finalSystemPrompt = `${baseSystemPrompt}\n\n${context.systemPrompt}`;
+    const finalSystemPrompt = `${baseSystemPrompt}${kbContext}\n\n${context.systemPrompt}`;
     const messages = [...context.messages];
     
     const combinedPrompt = `${finalSystemPrompt}\n\n` + 
@@ -160,7 +175,6 @@ export class OrchestrationEngine {
       const questions = "I'm having trouble formulating the next step accurately. Could you provide more details about the target or previous findings?";
       if (onChunk) await this.streamString(questions, onChunk);
       await this.sessionEngine.addChatMessage(sessionId, 'assistant', questions);
-      await this.auditEngine.log(sessionId, 'decision', { recommendedAction: 'Clarification Required (Validation Failure)' });
       return { recommendedAction: 'Clarification Required', questions, validationErrors: validationResult.errors };
     }
 
@@ -246,7 +260,6 @@ export class OrchestrationEngine {
     await this.sessionEngine.recordAction(sessionId, 'orchestrator_decision', finalResult);
     await this.sessionEngine.updateState(sessionId, { confidenceSnapshot: confidenceResult.score });
 
-    // Periodic Checkpoint
     if (updatedSession.state.actionHistory.length % this.config.checkpointInterval === 0) {
         await this.sessionEngine.createCheckpoint(sessionId);
         await this.auditEngine.log(sessionId, 'checkpoint', { state: updatedSession.state });

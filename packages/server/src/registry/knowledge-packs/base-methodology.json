@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "id": "base-methodology",
+    "name": "Base Pentest Methodology",
+    "version": "1.0.0",
+    "author": "KuroSystems",
+    "description": "Fundamental pentest guidance and reference.",
+    "tags": ["core", "methodology"]
+  },
+  "entries": [
+    {
+      "id": "m-recon-1",
+      "title": "Initial Passive Reconnaissance",
+      "content": "Begin by gathering information from public sources like WHOIS, DNS records, and social media without directly interacting with the target's infrastructure.",
+      "category": "methodology",
+      "tags": ["recon", "passive"]
+    },
+    {
+      "id": "m-vuln-1",
+      "title": "Web Cache Deception",
+      "content": "Check if the server misinterprets the extension of a requested file to cache sensitive data. Example: /api/user/profile.php/nonexistent.css",
+      "category": "vulnerability",
+      "tags": ["web", "cache", "exploit"]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-pentest.com/schemas/knowledge-pack.schema.json",
+  "title": "Knowledge Pack",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "author": { "type": "string" },
+        "description": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "name", "version", "author"]
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "category": { "type": "string", "enum": ["tool", "methodology", "reference", "vulnerability"] },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "metadata": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["id", "title", "content", "category"]
+      }
+    }
+  },
+  "required": ["metadata", "entries"]
+}
