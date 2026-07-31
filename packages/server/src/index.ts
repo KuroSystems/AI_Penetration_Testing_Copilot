@@ -34,16 +34,10 @@ rulesEngine.load().then(() => {
 
 // Tool Catalog setup
 const toolRegistryPath = path.join(__dirname, 'registry', 'tools');
-<<<<<<< Updated upstream
-const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath);
-toolRecommendationEngine.load().then(() => {
-  console.log('Tool Registry loaded.');
-=======
 const guiToolRegistryPath = path.join(__dirname, 'registry', 'gui-tools');
 const toolRecommendationEngine = new ToolRecommendationEngine(toolRegistryPath, guiToolRegistryPath);
 toolRecommendationEngine.load().then(() => {
   console.log('Tool Registries loaded.');
->>>>>>> Stashed changes
 });
 
 // Persistence & Engine setup
@@ -94,8 +88,6 @@ app.get('/health', (req: Request, res: Response) => {
 // List models
 app.get('/models', async (req: Request, res: Response) => {
   try {
-    // Note: ModelProvider interface in contracts might need listModels if we want it generic
-    // For now we cast or check if the method exists
     if ('listModels' in modelProvider) {
       const models = await (modelProvider as any).listModels();
       res.json({ models });
@@ -113,11 +105,9 @@ app.post('/generate', async (req: Request, res: Response) => {
   
   try {
     if (sessionId) {
-      // Use the Orchestration Engine if sessionId is provided
       const result = await orchestrator.process(sessionId, prompt, { modelName: model });
       res.json(result);
     } else {
-      // Legacy / stateless path
       let finalPrompt = prompt;
       if (tags && Array.isArray(tags)) {
         const assembledPrompt = promptLoader.assemble(tags, variables || {});
@@ -144,11 +134,11 @@ app.post('/prompts/reload', async (req: Request, res: Response) => {
 
 // Session Management Endpoints
 app.post('/sessions', async (req: Request, res: Response) => {
-  const { target, name } = req.body;
+  const { target, name, workflowId } = req.body;
   if (!target) return res.status(400).json({ error: 'Target is required' });
   
   try {
-    const session = await sessionEngine.createSession(target, name);
+    const session = await sessionEngine.createSession(target, name, workflowId);
     res.status(201).json(session);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

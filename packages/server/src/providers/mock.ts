@@ -24,13 +24,16 @@ export class MockModelProvider implements ModelProvider {
       if (prompt.includes('directory discovery')) {
           recommendedAction = 'Perform directory discovery';
       }
-<<<<<<< Updated upstream
-=======
       if (prompt.includes('Burp Suite Repeater')) {
           recommendedAction = 'Use Burp Suite Repeater';
           targetPhase = 'analysis';
       }
->>>>>>> Stashed changes
+      if (prompt.includes('FORCE_MULTI_ACTION')) {
+          recommendedAction = 'Scan targets and then exploit vulnerabilities.';
+      }
+      if (prompt.includes('FORCE_UNGROUNDED')) {
+          recommendedAction = 'Scan 8.8.8.8';
+      }
       
       return {
         text: JSON.stringify({
